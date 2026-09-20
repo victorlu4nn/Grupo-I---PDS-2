@@ -122,6 +122,26 @@
       "Player",
       "Board"
     ]
+  },
+  {
+    "name": "Piece",
+    "superclasses": "",
+    "subclasses": "",
+    "type": 1,
+    "responsibilities": [
+      "Armazenar o símbolo de identificação da peça na disposição do tabuleiro e do jogador relacionado",
+      "Identificar se a peça será móvel ou estática",
+      "Informar a quantidade de casas ocupadas pela peça",
+      "Informar a disposição da peça (vertical ou horizontal)",
+      "Armazenar a mecânica de movimentação da peça, caso seja móvel",
+      "Armazenar a mecânica de captura de peças, caso seja móvel",
+      "Fornecer o status da peça (ativa ou inativa)",
+      "Validar se movimentação ou captura respeitam suas mecânicas"
+    ],
+    "collaborators": [
+      "Board",
+      "Move"
+    ]
   }
 ]
 ```
