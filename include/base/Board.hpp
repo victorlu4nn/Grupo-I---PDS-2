@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "Piece.hpp"
 
 /**
  * @file Board.hpp
@@ -17,7 +18,7 @@ class Board {
 private:
     int linhas; ///< Número de linhas do tabuleiro (N).
     int colunas; ///< Número de colunas do tabuleiro (M).
-    std::vector<std::vector<std::string>> celulas; ///< Alocação da grade de células.
+    std::vector<std::vector<Piece*>> celulas; ///< Alocação da grade de células.
 
 public:
     /**

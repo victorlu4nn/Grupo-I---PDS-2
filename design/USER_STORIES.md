@@ -79,3 +79,23 @@ Como programador, desejo registrar meu novo jogo no menu principal da engine uti
 • A engine deve possuir um gerenciador de instâncias;
 • O menu deve iterar sobre a lista de jogos registrados no código para gerar a interface de seleção automaticamente;
 • O sistema deve associar corretamente a escolha numérica do usuário no console à instância da classe correspondente.
+
+### User Story 9
+#### Descrição: 
+Como tester, quero ser capaz de criar um novo jogo em escopo pré-definido de maneira personalizada e desejo que minha criação permaneça salva em tempo de execução e seja jogável.
+#### Critérios de aceitação: 
+• A engine deve possuir um espaço de personalização;
+• O sistema deve permitir confirmar ou interromper a criação do jogo de tabuleiro;
+• O sistema deve ser capaz de manter o jogo personalizado salvo em tempo de execução;
+• O sistema deve deixar disponível para ser jogável de acordo com o funcionamento personalizado;
+• O sistema deve garantir que o nome definido para jogos personalizados não conflitem entre outros nomes personalizados e de jogos pré-definidos;
+
+### User Story 10
+#### Descrição: 
+Como tester, desejo parametrizar as regras de movimentação, captura, layouts iniciais e condições de vitória a partir de um conjunto restrito de opções pré-definidas, para criar um jogo equilibrado e funcional sem quebrar as restrições físicas do tabuleiro.
+#### Critérios de aceitação: 
+• O sistema deve ser capaz de exibir as funcionalidades e seus tipos disponíveis para seleção, assim como as instruções de entrada;
+• O sistema deve possuir opção para obter uma explicação mais completa e/ou informação visual referente à funcionalidade e o tipo antes de confirmá-lo para integração;
+• O sistema deve tratar entradas inválidas (erros de digitação) informando o erro e repetindo a pergunta atual, sem encerrar o fluxo de criação;
+• O sistema deve calcular e limitar automaticamente a quantidade de peças geradas com base nas dimensões do tabuleiro e no layout inicial selecionado;
+• Ao final do fluxo de perguntas, o sistema deve exibir um resumo completo de todas as opções selecionadas e exigir uma confirmação única antes de instanciar o jogo.
