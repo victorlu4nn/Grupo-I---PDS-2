@@ -12,3 +12,5 @@ inline void colocar(Board& b,int l,int c,const std::string& s,int id=1){
     b.inserirPeca(l,c,std::unique_ptr<Piece>(new PecaBasicaTeste(s,id)));
 }
 #endif
+
+///asss
