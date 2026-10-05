@@ -15,9 +15,9 @@
  * @brief Controla as dimensões N x M, alocação dinâmica e posições das células.
  */
 class Board {
-private:
-    int linhas; ///< Número de linhas do tabuleiro (N).
-    int colunas; ///< Número de colunas do tabuleiro (M).
+protected:
+    const int linhas; ///< Número de linhas do tabuleiro (N).
+    const int colunas; ///< Número de colunas do tabuleiro (M).
     std::vector<std::vector<Piece*>> celulas; ///< Alocação da grade de células.
 
 public:
@@ -34,7 +34,7 @@ public:
      * @param y Coordenada da coluna.
      * @return true se estiver dentro dos limites, false caso contrário.
      */
-    bool validarCoordenadas(int x, int y) const;
+    virtual bool validarCoordenadas(int x, int y) const;
 
     /**
      * @brief Consulta a peça ou elemento presente em uma coordenada.
