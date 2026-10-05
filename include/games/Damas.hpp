@@ -31,7 +31,7 @@ class Damas: public Game, public PecaDamas {
         
         // Stores all captured pieces into a vector for multiple taken pieces
         // due to the game capture mechanics
-        std::vector<Piece*> pecas_capturadas();
+        std::vector<PecaDamas*> pecas_capturadas();
 
         // Initialize the damas board given a fixed structure
         void organizar_tabuleiro_damas();
@@ -54,6 +54,7 @@ class PecaDamas: public Piece {
         // mobility mechanics
         bool eh_dama;
         const EquipePeca equipe;
+        std::string simbolo_peca;
 
     public:
         // Constructor that initializes a piece of Damas and will work with its
