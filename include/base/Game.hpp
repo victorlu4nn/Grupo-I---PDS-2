@@ -18,7 +18,7 @@ protected:
     std::string estadoPartida;
     // Winner of the game (nullptr = draw or game still running)
     Player* vencedorPartida = nullptr;
-    int pontuacao;
+    int pontuacaoEmpate = 0;
     // Construtor para jogos que criam seus proprios recursos, como Connect4.
     Game(const std::string& nome, std::unique_ptr<Board> b, std::unique_ptr<RuleBook> r);
     void criarJogadores(std::string simbolo1, std::string simbolo2);
