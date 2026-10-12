@@ -210,6 +210,10 @@ class PecaDamas: public Piece {
          */
         bool _movimento_valido(bool dama, Move movimento) const;
 
+        // Movement to be validate according to the board boundaries and apply
+        // changes to the board
+        bool movimento_valido(int x_orig, int y_orig, int x_dest, int y_dest, const Board& board_status) const override;
+
         // Literally calls movement and updates piece locals
         /**
          * @brief Executa fisicamente o movimento, atualizando a posição local da peça.
