@@ -86,7 +86,10 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
          * @param acao String contendo a jogada inserida.
          * @return std::vector<int> Vetor estruturado com os dados do movimento.
          */
-        std::vector<int> _lendo_movimento(std::string acao) const;
+        std::vector<int> _lendo_movimento(const std::string acao) const;
+
+        // Concrete function that implements abstract function in base-class 
+        bool executarJogada(const std::string acao) override;
 
         // Another condition for a game of Damas to end, is to check if there is 
         // no other valid movement for the player. This will be a simple function
@@ -120,6 +123,11 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
          * @brief Organiza e posiciona as peças nas posições iniciais padrão do tabuleiro de damas.
          */
         void organizar_tabuleiro_damas();
+
+        /**
+         * @brief Organiza e posiciona as peças nas posições iniciais padrão do tabuleiro de damas.
+         */
+        void configurarDisposicaoInicial() override;
 
         // Returns if the game has ended
         /**
