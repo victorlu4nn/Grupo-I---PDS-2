@@ -57,6 +57,11 @@ public:
      * @brief Processa comandos de encerramento e reinicialização com confirmação.
      */
     void processarComandoEncerramento();
+
+    /**
+     * @brief Exibe o livro de regras para o jogo específico.
+     */
+    void getDescricaoRegras() const;
 };
 
 #endif
