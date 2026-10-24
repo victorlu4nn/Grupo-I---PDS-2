@@ -42,7 +42,7 @@ public:
      * @param y Coordenada da coluna.
      * @return std::string Representação da peça na posição.
      */
-    std::string consultarPosicao(int x, int y) const;
+    Piece* consultarPosicao(int x, int y) const;
 
     /**
      * @brief Insere ou atualiza uma peça em uma posição específica.
@@ -50,7 +50,7 @@ public:
      * @param y Coordenada da coluna.
      * @param peca Representação da peça.
      */
-    void atualizarPosicao(int x, int y, const std::string& peca);
+    void atualizarPosicao(int x, int y, Piece* peca);
 
     /**
      * @brief Remove peças de posições determinadas do tabuleiro.
