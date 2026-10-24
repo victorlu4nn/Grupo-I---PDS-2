@@ -86,7 +86,7 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
          * @param acao String contendo a jogada inserida.
          * @return std::vector<int> Vetor estruturado com os dados do movimento.
          */
-        std::vector<int> _lendo_movimento(const std::string acao) const;
+        std::vector<std::string> _lendo_movimento(const std::string acao) const;
 
         // Concrete function that implements abstract function in base-class 
         bool executarJogada(const std::string acao) override;
@@ -145,15 +145,6 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
 };
 
 /**
- * @enum EquipePeca
- * @brief Define os times/equipes possíveis para as peças de damas.
- */
-enum class EquipePeca {
-    BRANCA,
-    PRETA
-};
-
-/**
  * @class PecaDamas
  * @brief Representa uma peça individual no jogo de Damas, herdando propriedades da classe base Piece.
  */
@@ -162,7 +153,12 @@ class PecaDamas: public Piece {
         // Attribute that verifies if a piece is Dama, due to different
         // mobility mechanics
         bool eh_dama;
-        const EquipePeca equipe;
+
+        // Update symbol when piece turns into dama
+        /**
+         * @brief Atualiza o símbolo visual da peça após sua promoção a Dama.
+         */
+        void atualizar_simbolo();
 
     public:
         // Constructor that initializes a piece of Damas and will work with its
@@ -186,12 +182,6 @@ class PecaDamas: public Piece {
          * @return true se for Dama, false se for pedra normal.
          */
         bool get_eh_damas() const;
-
-        // Update symbol when piece turns into dama
-        /**
-         * @brief Atualiza o símbolo visual da peça após sua promoção a Dama.
-         */
-        void atualizar_simbolo();
 
         // Exclusive function that changes a piece status from normal to
         // dama when it reaches the end of the board and it is called
