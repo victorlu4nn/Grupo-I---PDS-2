@@ -27,7 +27,7 @@ struct PlayerDamas {
  * @class Damas
  * @brief Classe principal que gerencia a lógica, regras, tabuleiro e estados de uma partida de Damas.
  */
-class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
+class Damas: public Game, PlayerDamas {
     private:
         // Variables that are going to determine how many pieces 
         // of each team there are on the board
@@ -70,7 +70,7 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
         /**
          * @brief Constrói um novo objeto do jogo Damas, inicializando o estado inicial.
          */
-        Damas();
+        Damas(Board * damasboard, RuleBook* damasrulebook);
 
         /**
          * @brief Destrói o objeto Damas, liberando recursos alocados.
@@ -152,7 +152,7 @@ class PecaDamas: public Piece {
     private:
         // Attribute that verifies if a piece is Dama, due to different
         // mobility mechanics
-        bool eh_dama;
+        bool eh_dama = false;
 
         // Update symbol when piece turns into dama
         /**
@@ -194,11 +194,10 @@ class PecaDamas: public Piece {
         // It takes bool dama as a parameter to verify if 
         /**
          * @brief Valida um movimento específico considerando as regras de mobilidade da peça.
-         * @param dama Indica se a peça que se move é dama para aplicar as regras de alcance correspondentes.
          * @param movimento Estrutura contendo a origem e o destino do lance.
          * @return true se o movimento for válido para a peça, false caso contrário.
          */
-        bool _movimento_valido(bool dama, Move movimento) const;
+        bool _movimento_valido(Move movimento) const;
 
         // Movement to be validate according to the board boundaries and apply
         // changes to the board
