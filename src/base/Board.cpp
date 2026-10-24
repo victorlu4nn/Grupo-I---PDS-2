@@ -24,8 +24,9 @@ void Board::atualizarPosicao(int x, int y, Piece* peca) {
     if (!validarCoordenadas(x, y)) {
         throw std::out_of_range("Coordenadas fora dos limites do tabuleiro.");
     }
-    // Lógica para alocar/atualizar a peça na posição (x, y)
-
+    // presumably, the implementation functions will be responsible for
+    // verifying if there is already a piece at this location.
+    celulas[x][y] = peca;
 }
 
 void Board::removerPeca(int x, int y) {
