@@ -122,7 +122,7 @@ class Damas: public Game, public PecaDamas, public Board, PlayerDamas {
         /**
          * @brief Organiza e posiciona as peças nas posições iniciais padrão do tabuleiro de damas.
          */
-        void organizar_tabuleiro_damas();
+        void organizar_tabuleiro_damas(Board* damasboard);
 
         /**
          * @brief Organiza e posiciona as peças nas posições iniciais padrão do tabuleiro de damas.
