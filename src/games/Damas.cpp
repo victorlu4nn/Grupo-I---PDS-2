@@ -8,6 +8,8 @@
 
 Damas::Damas(Board* damasboard, RuleBook* damasrulebook): Game("Damas", damasboard, damasrulebook) {}
 
+Damas::~Damas(){}
+
 void Damas::configurarDisposicaoInicial() {
     organizar_tabuleiro_damas(tabuleiro);
 }
@@ -151,7 +153,7 @@ void PecaDamas::promocao_dama() {
 
 bool PecaDamas::_movimento_valido(Move movimento) const {
     if (!eh_dama) {
-        
+
     }
 }
 
