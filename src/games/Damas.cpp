@@ -14,6 +14,10 @@ void Damas::configurarDisposicaoInicial() {
     organizar_tabuleiro_damas(tabuleiro);
 }
 
+bool verifica_peca_eh_jogador_da_vez(Piece* peca, int id) {
+    return peca->ler_id_jogador() == id;
+}
+
 void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     // Configura o terminal para aceitar UTF-8 (necessário em alguns sistemas como Windows)
     std::setlocale(LC_ALL, "en_US.UTF-8"); 
@@ -97,6 +101,8 @@ bool verify_structures(
 
 bool Damas::executarJogada(const std::string acao) {
     std::vector<std::string> standardized_move = _lendo_movimento(acao);
+    std::vector<PecaDamas*> pecas_capturadas;
+    std::vector<int> posicoes_capturadas;
 
     std::string posicao_inicial = standardized_move[0];
     int initial_x = posicao_inicial[0] - '0';
@@ -109,55 +115,156 @@ bool Damas::executarJogada(const std::string acao) {
     // and if it is, get this piece to move
     if (peca_damas_de_movimento == nullptr) {
         std::cerr << "Erro. Nenhuma peca na posicao inicial" << std::endl;
-    } else if (peca_damas_de_movimento->ler_id_jogador() != indiceJogadorDaVez) {
+        return false;
+
+    } else if (!verifica_peca_eh_jogador_da_vez(peca_damas_de_movimento, indiceJogadorDaVez)) {
         std::cerr << "Erro. Peca da posicao inicial nao pertence a voce" << std::endl;
+        return false;
     }
 
-    Movimento_Valido* move = peca_damas_de_movimento->_movimento_valido(
-        peca_damas_de_movimento->ler_id_jogador(), standardized_move
-    );
+    Movimento_Valido* move = peca_damas_de_movimento->_movimento_valido(standardized_move, tabuleiro);
 
     int final_x = move->coords[move->coords.size() - 2];
     int final_y = move->coords[move->coords.size() - 1];
 
     if (tabuleiro->consultarPosicao(final_x, final_y) != nullptr) {
         std::cerr << "Erro. Posicao final ja possui uma peca alocada" << std::endl;
+        return false;
+
     } else if (!move->eh_valido) {
         std::cerr << "Erro. Deslocamento invalido para a peca" << std::endl;
+        return false;
+    }
+
+    for (int idx = 0; idx <= move->coords.size() - 2; idx += 2) {
+        int x = move->coords[idx];
+        int y = move->coords[idx + 1];
+
+        if (!tabuleiro->validarCoordenadas(x, y)) {
+            std::cerr << "Erro. Coordenada fora dos limites do tabuleiro" << std::endl;
+            return false;
+        }
     }
 
     if (move->coords.size() > 2) {
-        if (_captura_valida(*move)) {
+        if (_captura_valida(*move, peca_damas_de_movimento, pecas_capturadas, posicoes_capturadas)) {
+            int pecas_idx = 0;
+            for (PecaDamas* peca: pecas_capturadas) {
+                int x_peca = posicoes_capturadas[pecas_idx];
+                pecas_idx++;
+                int y_peca = posicoes_capturadas[pecas_idx];
+                tabuleiro->removerPeca(x_peca, y_peca);
 
+                pecas_idx++;
+            }
+
+            tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
+            tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+
+            return true;
         }
     } else {
         if (abs(initial_x - final_x) == 2 && abs(initial_y - final_y) == 2) {
-            if (_captura_valida(*move)) {
+            if (_captura_valida(*move, peca_damas_de_movimento, pecas_capturadas, posicoes_capturadas)) {
+                int x_peca = posicoes_capturadas[0];
+                int y_peca = posicoes_capturadas[1];
+                tabuleiro->removerPeca(x_peca, y_peca);
 
+                bool is_captura = (pecas_capturadas[0] == nullptr);
+
+                tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
+                tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+
+                return true;
             }
+        } else {
+            if (!verify_if_step_back(peca_damas_de_movimento, indiceJogadorDaVez, move->coords)) {
+                std::cerr << "Erro. movimento nao pode ser feito na direcao contraria de locomocao" << std::endl;
+            }
+
+            tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
+            tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+
+            return true;
         }
     }
-    
 }
 
-bool Damas::_captura_valida(Movimento_Valido acoes) {
-    for (int index = 0; index <= (acoes.coords.size() - 4); index += 2){
-        int xi = acoes.coords[index];
-        int yi = acoes.coords[index + 1];
-        int xj = acoes.coords[index + 2];
+bool verify_if_step_back(PecaDamas* peca, int id, std::vector<int> coords) {
+    if (!peca->get_eh_damas()) {
+        int x0 = coords[0];
+        int x1 = coords[2];
 
-        int intermediario_x = xi + 1;
-        int intermediario_y = yi + 1;
-        
-        Piece* peca_capturada = tabuleiro->consultarPosicao(intermediario_x, intermediario_y);
-
-        if (peca_capturada == nullptr || peca_capturada->ler_id_jogador() == indiceJogadorDaVez) {
-            std::cerr << "Erro. Tentativa de captura invalida (nenhuma peca a ser capturada ou peca a ser captura pertence a voce)" << std::endl;
-            return false; 
+        if (id == 1 && x1 < x0) {
+            return true;
+        } else if (id == 2 && x1 > x0) {
+            return true;
         }
     }
 
     return false;
+}
+
+bool Damas::_captura_valida(
+    Movimento_Valido acoes, 
+    PecaDamas* peca_que_captura,
+    std::vector<PecaDamas*>& pecas_capturadas,
+    std::vector<int>& posicoes_capturadas
+) {
+    if (!peca_que_captura->get_eh_damas()) {
+        for (int index = 0; index <= (acoes.coords.size() - 4); index += 2){
+            int xi = acoes.coords[index];
+            int yi = acoes.coords[index + 1];
+
+            int intermediario_x = xi + 1;
+            int intermediario_y = yi + 1;
+            
+            Piece* peca_capturada = tabuleiro->consultarPosicao(intermediario_x, intermediario_y);
+
+            if (peca_capturada == nullptr || verifica_peca_eh_jogador_da_vez(peca_capturada, indiceJogadorDaVez)) {
+                std::cerr << "Erro. Tentativa de captura invalida (nenhuma peca a ser capturada ou peca a ser captura pertence a voce)" << std::endl;
+                return false; 
+            }
+            PecaDamas* peca_dama_capturada = dynamic_cast<PecaDamas*>(peca_capturada);
+            pecas_capturadas.push_back(peca_dama_capturada);
+        }
+    } else {
+        for (int idx = 0; idx <= acoes.coords.size() - 4; idx += 2) {
+            unsigned short pecas_entre_lance = 0;
+
+            int x_initial = acoes.coords[idx];
+            int y_initial = acoes.coords[idx + 1];
+            int x_lance = acoes.coords[idx + 2];
+            int y_lance = acoes.coords[idx + 3];
+
+            PecaDamas* peca_capturada = nullptr;
+
+            for (int i = 1; i <= abs(x_initial - x_lance); i++) {
+                Piece* peca_intermediaria = tabuleiro->consultarPosicao(x_initial + i, y_initial + i);
+                PecaDamas* peca_capturada = dynamic_cast<PecaDamas*>(peca_intermediaria);
+
+                if (peca_intermediaria != nullptr) {
+                    if (verifica_peca_eh_jogador_da_vez(peca_intermediaria, indiceJogadorDaVez)) {
+                        std::cerr << "Erro. Lance passa por uma peca da mesma equipe" << std::endl;
+                    } else {
+                        if (pecas_entre_lance == 1) {
+                            std::cerr << "Erro. Lance passa por mais de uma peça de uma vez" << std::endl;
+                        }
+                        pecas_entre_lance++;
+                    }
+                }   
+            }
+
+            if (pecas_entre_lance == 0 && acoes.coords.size() > 2) {
+                std::cerr << "Erro. Combinacao de movimentos invalida. Multiplas casas"
+                    "sao permitidas apenas em captura. Nenhuma peca de captura em um dos movimentos" << std::endl;
+            } 
+
+            pecas_capturadas.push_back(peca_capturada);
+        }
+    }
+
+    return true;
 }
 
 
@@ -180,8 +287,8 @@ void PecaDamas::promocao_dama() {
 }
 
 Movimento_Valido* PecaDamas::_movimento_valido(
-    int indice_jogador,
-    std::vector<std::string> movimento_padronizado
+    std::vector<std::string> movimento_padronizado,
+    Board* tabuleiro_damas
 ) const {
     Movimento_Valido* valid = new Movimento_Valido;
 
@@ -202,7 +309,9 @@ Movimento_Valido* PecaDamas::_movimento_valido(
 
             if (
                 (abs(initial_x - final_x) <= 2 && abs(initial_y - final_y) <= 2) &&
-                (abs(initial_x - final_x) == abs(initial_y - final_y))
+                (abs(initial_x - final_x) == abs(initial_y - final_y)) &&
+                tabuleiro_damas->validarCoordenadas(initial_x, initial_y) &&
+                tabuleiro_damas->validarCoordenadas(final_x, final_y)
             ) 
                 valid->eh_valido = true;
 
@@ -215,7 +324,9 @@ Movimento_Valido* PecaDamas::_movimento_valido(
                 int final_x = valid->coords[index + 2];
                 int final_y = valid->coords[index + 3];
 
-                if (!(abs(initial_x - final_x) == 2 && abs(initial_y - final_y) == 2))
+                if ((!(abs(initial_x - final_x) == 2 && abs(initial_y - final_y) == 2)) &&
+                !tabuleiro_damas->validarCoordenadas(initial_x, initial_y) &&
+                !tabuleiro_damas->validarCoordenadas(final_x, final_y))
                     valid->eh_valido = false;
             }
         }
