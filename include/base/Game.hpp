@@ -22,7 +22,7 @@ protected:
     Board* tabuleiro; ///< Referência do tabuleiro associado à partida.
     RuleBook* regras; ///< Livro de regras associado ao jogo.
     std::vector<Player*> jogadores; ///< Lista de jogadores participantes.
-    size_t indiceJogadorDaVez; ///< Apontador para o índice do jogador da vez.
+    int indiceJogadorDaVez; ///< Apontador para o índice do jogador da vez.
     std::string estadoPartida; ///< Estado atual da partida (ex: "em_andamento", "finalizada").
 
 public:
