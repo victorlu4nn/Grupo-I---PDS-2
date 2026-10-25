@@ -23,6 +23,11 @@ struct PlayerDamas {
     std::map<std::string, unsigned short> mapa_pecas_no_tabuleiro;
 };
 
+struct Movimento_Valido {
+    bool eh_valido = false;
+    std::vector<int> coords;
+};
+
 /**
  * @class Damas
  * @brief Classe principal que gerencia a lógica, regras, tabuleiro e estados de uma partida de Damas.
@@ -108,7 +113,7 @@ class Damas: public Game, PlayerDamas {
          * @param acoes Vetor contendo as posições e comandos da captura.
          * @return true se a captura for válida, false caso contrário.
          */
-        bool _captura_valida(std::vector<int> acoes);
+        bool _captura_valida(Movimento_Valido acoes);
         
         // Stores all captured pieces into a vector for multiple taken pieces
         // due to the game capture mechanics
@@ -194,10 +199,14 @@ class PecaDamas: public Piece {
         // It takes bool dama as a parameter to verify if 
         /**
          * @brief Valida um movimento específico considerando as regras de mobilidade da peça.
-         * @param movimento Estrutura contendo a origem e o destino do lance.
-         * @return true se o movimento for válido para a peça, false caso contrário.
+         * @param indice_jogador Id do jogador responsável pela jogada para adaptar a conferência.
+         * @param movimento_padronizado Contêiner com o movimento padronizado para leitura e adaptado para casos.
+         * @return 
          */
-        bool _movimento_valido(Move movimento) const;
+        Movimento_Valido* _movimento_valido(
+            int indice_jogador,
+            std::vector<std::string> movimento_padronizado
+        ) const;
 
         // Movement to be validate according to the board boundaries and apply
         // changes to the board
