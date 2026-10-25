@@ -28,6 +28,8 @@ struct Movimento_Valido {
     std::vector<int> coords;
 };
 
+class PecaDamas;
+
 /**
  * @class Damas
  * @brief Classe principal que gerencia a lógica, regras, tabuleiro e estados de uma partida de Damas.
@@ -113,7 +115,7 @@ class Damas: public Game, PlayerDamas {
          * @param acoes Vetor contendo as posições e comandos da captura.
          * @return true se a captura for válida, false caso contrário.
          */
-        bool _captura_valida(Movimento_Valido acoes);
+        bool _captura_valida(Movimento_Valido acoes, PecaDamas* peca_que_captura);
         
         // Stores all captured pieces into a vector for multiple taken pieces
         // due to the game capture mechanics
@@ -204,8 +206,8 @@ class PecaDamas: public Piece {
          * @return 
          */
         Movimento_Valido* _movimento_valido(
-            int indice_jogador,
-            std::vector<std::string> movimento_padronizado
+            std::vector<std::string> movimento_padronizado,
+            Board* tabuleiro_damas
         ) const;
 
         // Movement to be validate according to the board boundaries and apply
