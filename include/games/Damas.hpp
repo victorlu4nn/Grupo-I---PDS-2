@@ -115,15 +115,12 @@ class Damas: public Game, PlayerDamas {
          * @param acoes Vetor contendo as posições e comandos da captura.
          * @return true se a captura for válida, false caso contrário.
          */
-        bool _captura_valida(Movimento_Valido acoes, PecaDamas* peca_que_captura);
-        
-        // Stores all captured pieces into a vector for multiple taken pieces
-        // due to the game capture mechanics
-        /**
-         * @brief Coleta e armazena todas as peças capturadas durante uma jogada múltipla.
-         * @return std::vector<PecaDamas*> Vetor com ponteiros para as peças removidas.
-         */
-        std::vector<PecaDamas*> pecas_capturadas();
+        bool _captura_valida(
+            Movimento_Valido acoes, 
+            PecaDamas* peca_que_captura,
+            std::vector<PecaDamas*>& pecas_capturadas,
+            std::vector<int>& posicoes_capturadas
+        );
 
         // Initialize the damas board given a fixed structure
         /**
