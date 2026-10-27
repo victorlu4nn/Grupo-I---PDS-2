@@ -5,7 +5,7 @@
 
 /**
  * @file Player.hpp
- * @brief Definição da classe Player para identificação dos participantes.
+ * @brief Definição da classe Player ara identificação dos participantes.
  */
 
 /**
