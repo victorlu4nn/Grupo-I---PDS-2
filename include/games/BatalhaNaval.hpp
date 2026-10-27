@@ -12,6 +12,14 @@
 #include "RuleBook.hpp"
 #include "Player.hpp"
 
+/*
+ * Board layout: each player owns a 10x10 "sea" and both seas live side by side
+ * on the same Board, which must have at least 10 rows and 20 columns:
+ *   player 1 -> columns 0-9, player 2 -> columns 10-19.
+ * Every coordinate used by the public helpers below is relative to ONE sea
+ * (line 0-9, column 0-9). The translation to Board columns is internal.
+ * Piece ids: 1 = player 1, 2 = player 2.
+ */
 class BatalhaNaval : public Game {
 private:
     // Number of ships belonging to each player
@@ -23,23 +31,38 @@ public:
     BatalhaNaval(Board* tabuleiro, RuleBook* regras);
     ~BatalhaNaval() override;
 
+    // The game owns its Player objects, so copying it would double-delete them
+    BatalhaNaval(const BatalhaNaval&) = delete;
+    BatalhaNaval& operator=(const BatalhaNaval&) = delete;
+
     // Configures the initial arrangement of the ships
     void configurarDisposicaoInicial() override;
 
     // Executes a player's action
     bool executarJogada(const std::string acao) override;
 
-    // Places the ships on the board
+    // Clears the board and randomly places the whole fleet of both players
     void organizar_tabuleiro_batalha_naval();
 
-    // Converts the player's input into coordinates
+    // Places one ship in the sea of 'jogador' (1 or 2), starting at
+    // (linha, coluna) and growing right (horizontal) or down (vertical).
+    // Fails (returns false) if it leaves the sea, overlaps or touches
+    // (orthogonally) another ship.
+    bool posicionar_navio(int jogador, int linha, int coluna, int tamanho, bool horizontal);
+
+    // Converts the player's input (e.g. "B5") into {linha, coluna} of the
+    // attacked sea. Returns an empty vector if the input is invalid.
     std::vector<int> _lendo_movimento(const std::string acao) const;
 
-    // Checks whether the attack is valid
-    bool _movimento_valido(Move movimento) const;
+    // Checks whether the current player can attack (linha, coluna) of the
+    // opponent's sea (inside the sea and not attacked yet)
+    bool _movimento_valido(int linha, int coluna) const;
 
-    // Executes the attack and checks its result
-    void _executa_movimento(Move movimento);
+    // Executes the attack on the opponent's sea and checks its result
+    void _executa_movimento(int linha, int coluna);
+
+    // Number of ships of 'jogador' that are not sunk yet
+    unsigned navios_restantes(int jogador) const;
 
     // Checks whether the game has ended
     bool FimdeJogo() const;
@@ -57,8 +80,8 @@ private:
     bool foi_atingido;
 
 public:
-    // Constructor
-    PecaBatalhaNaval(std::string simb, int id_jogador);
+    // Constructor (navio = false creates a "water" marker, i.e. a missed shot)
+    PecaBatalhaNaval(std::string simb, int id_jogador, bool navio = true);
 
     // Destructor
     ~PecaBatalhaNaval() override;

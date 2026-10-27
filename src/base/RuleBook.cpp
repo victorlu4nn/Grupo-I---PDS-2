@@ -41,11 +41,14 @@ bool RuleBook::verificarVitoria(Board* tabuleiro) const {
             tabuleiro->validarCoordenadas(i, 1) &&
             tabuleiro->validarCoordenadas(i, 2)) {
             
-            std::string p1 = tabuleiro->consultarPosicao(i, 0);
-            std::string p2 = tabuleiro->consultarPosicao(i, 1);
-            std::string p3 = tabuleiro->consultarPosicao(i, 2);
+            Piece* p1 = tabuleiro->consultarPosicao(i, 0);
+            Piece* p2 = tabuleiro->consultarPosicao(i, 1);
+            Piece* p3 = tabuleiro->consultarPosicao(i, 2);
 
-            if (!p1.empty() && p1 == p2 && p2 == p3) {
+            // As posicoes guardam Piece*: compara o simbolo das pecas, nao os ponteiros
+            if (p1 != nullptr && p2 != nullptr && p3 != nullptr &&
+                p1->ler_simbolo() == p2->ler_simbolo() &&
+                p2->ler_simbolo() == p3->ler_simbolo()) {
                 return true;
             }
         }
@@ -66,7 +69,7 @@ bool RuleBook::verificarEmpate(Board* tabuleiro) const {
     // Se todas as posições estiverem preenchidas sem vencedor, configura empate
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            if (tabuleiro->validarCoordenadas(i, j) && tabuleiro->consultarPosicao(i, j).empty()) {
+            if (tabuleiro->validarCoordenadas(i, j) && tabuleiro->consultarPosicao(i, j) == nullptr) {
                 return false;
             }
         }

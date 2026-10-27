@@ -1,88 +1,73 @@
 #include <cctype>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
-#include <random>
-#include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "BatalhaNaval.hpp"
 
-namespace {
-
 // Each player owns a 10x10 sea. Both seas live side by side on the same Board:
-// player 1 -> columns 0-9, player 2 -> columns 10-19 (see BatalhaNaval.hpp).
-constexpr int TAMANHO_MAR = 10;
+// player 1 -> columns 0-9, player 2 -> columns 10-19 (see BatalhaNaval.hpp)
+static const int TAMANHO_MAR = 10;
 
-// Classic fleet: carrier, battleship, cruiser, submarine and destroyer.
-// Placed from the biggest to the smallest to make random placement reliable.
-const std::vector<int> FROTA = {5, 4, 3, 3, 2};
+// Classic fleet: carrier, battleship, cruiser, submarine and destroyer
+static const int QUANTIDADE_NAVIOS = 5;
+static const int FROTA[QUANTIDADE_NAVIOS] = {5, 4, 3, 3, 2};
 
-const int DIRECOES[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+// Up, down, left and right
+static const int DIRECOES[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
-int oponente(int jogador) {
+static int id_oponente(int jogador) {
     return 3 - jogador;
 }
 
 // Translates a column of a player's sea into a column of the shared Board
-int coluna_no_tabuleiro(int jogador, int coluna) {
+static int coluna_no_tabuleiro(int jogador, int coluna) {
     return (jogador - 1) * TAMANHO_MAR + coluna;
 }
 
-bool dentro_do_mar(int linha, int coluna) {
+static bool dentro_do_mar(int linha, int coluna) {
     return linha >= 0 && linha < TAMANHO_MAR && coluna >= 0 && coluna < TAMANHO_MAR;
 }
 
-// Returns the ship part at (linha, coluna) of the player's sea, or nullptr if
-// the position is outside the sea, empty or only holds a "water" marker.
-PecaBatalhaNaval* navio_em(const Board& tabuleiro, int jogador, int linha, int coluna) {
+// Returns the ship part at a position of the player's sea, or nullptr if there
+// is no ship there (empty water, water marker or outside the sea)
+static PecaBatalhaNaval* navio_em(Board* tabuleiro, int jogador, int linha, int coluna) {
     if (!dentro_do_mar(linha, coluna)) {
         return nullptr;
     }
-    Piece* peca = tabuleiro.consultarPosicao(linha, coluna_no_tabuleiro(jogador, coluna));
+
+    Piece* peca = tabuleiro->consultarPosicao(linha, coluna_no_tabuleiro(jogador, coluna));
     PecaBatalhaNaval* navio = dynamic_cast<PecaBatalhaNaval*>(peca);
+
     if (navio == nullptr || !navio->get_eh_navio()) {
         return nullptr;
     }
     return navio;
 }
 
-// A ship is the set of ship parts connected orthogonally (ships are never
-// allowed to touch each other, so this set is unambiguous). It is sunk when
-// every one of its parts has been hit.
-bool navio_afundou(const Board& tabuleiro, int jogador, int linha, int coluna) {
-    std::vector<std::pair<int, int>> pendentes = {{linha, coluna}};
-    std::set<std::pair<int, int>> visitadas = {{linha, coluna}};
+// Ships are straight lines and never touch each other, so a ship is sunk when
+// every ship part in line with the hit position (until the first gap) was hit
+static bool verifica_navio_afundado(Board* tabuleiro, int jogador, int linha, int coluna) {
+    for (int i = 0; i < 4; i++) {
+        int l = linha + DIRECOES[i][0];
+        int c = coluna + DIRECOES[i][1];
 
-    while (!pendentes.empty()) {
-        std::pair<int, int> atual = pendentes.back();
-        pendentes.pop_back();
-
-        PecaBatalhaNaval* parte = navio_em(tabuleiro, jogador, atual.first, atual.second);
-        if (parte == nullptr) {
-            continue;
-        }
-        if (!parte->get_foi_atingido()) {
-            return false;
-        }
-
-        for (const auto& direcao : DIRECOES) {
-            std::pair<int, int> vizinha = {atual.first + direcao[0], atual.second + direcao[1]};
-            if (navio_em(tabuleiro, jogador, vizinha.first, vizinha.second) != nullptr
-                && visitadas.insert(vizinha).second) {
-                pendentes.push_back(vizinha);
+        PecaBatalhaNaval* parte = navio_em(tabuleiro, jogador, l, c);
+        while (parte != nullptr) {
+            if (!parte->get_foi_atingido()) {
+                return false;
             }
+            l += DIRECOES[i][0];
+            c += DIRECOES[i][1];
+            parte = navio_em(tabuleiro, jogador, l, c);
         }
     }
     return true;
 }
-
-}  // namespace
-
-// ---------------------------------------------------------------------------
-// BatalhaNaval
-// ---------------------------------------------------------------------------
 
 BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
     : Game("Batalha Naval", tabuleiro, regras),
@@ -94,9 +79,13 @@ BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
             "O tabuleiro de Batalha Naval precisa ter ao menos 10 linhas e 20 colunas.");
     }
 
-    // Without players in the list Game::alternarTurno() would never switch turns
+    // Without players in the list Game::alternarTurno() has nobody to switch to
     jogadores.push_back(new Player("Jogador 1", '1'));
     jogadores.push_back(new Player("Jogador 2", '2'));
+
+    // Game starts the turn index at 1, but here the Jogador 1 (index 0) must
+    // always play first, exactly as after Game::reiniciarPartida()
+    indiceJogadorDaVez = 0;
 }
 
 BatalhaNaval::~BatalhaNaval() {
@@ -111,23 +100,28 @@ void BatalhaNaval::configurarDisposicaoInicial() {
 }
 
 void BatalhaNaval::organizar_tabuleiro_batalha_naval() {
+    // Seeds the random generator only once per program
+    static bool semente_definida = false;
+    if (!semente_definida) {
+        std::srand(static_cast<unsigned>(std::time(nullptr)));
+        semente_definida = true;
+    }
+
     tabuleiro->limpar();
     quantidade_navios_jogador1 = 0;
     quantidade_navios_jogador2 = 0;
 
-    std::mt19937 gerador{std::random_device{}()};
-    std::uniform_int_distribution<int> posicao(0, TAMANHO_MAR - 1);
-    std::bernoulli_distribution sorteio_horizontal(0.5);
-
-    for (int jogador = 1; jogador <= 2; ++jogador) {
-        for (int tamanho : FROTA) {
+    for (int jogador = 1; jogador <= 2; jogador++) {
+        for (int i = 0; i < QUANTIDADE_NAVIOS; i++) {
+            // Tries random positions until the ship fits
             bool posicionado = false;
 
-            for (int tentativa = 0; tentativa < 1000 && !posicionado; ++tentativa) {
-                int linha = posicao(gerador);
-                int coluna = posicao(gerador);
-                bool horizontal = sorteio_horizontal(gerador);
-                posicionado = posicionar_navio(jogador, linha, coluna, tamanho, horizontal);
+            for (int tentativa = 0; tentativa < 1000 && !posicionado; tentativa++) {
+                int linha = std::rand() % TAMANHO_MAR;
+                int coluna = std::rand() % TAMANHO_MAR;
+                bool horizontal = (std::rand() % 2 == 0);
+
+                posicionado = posicionar_navio(jogador, linha, coluna, FROTA[i], horizontal);
             }
 
             if (!posicionado) {
@@ -142,80 +136,82 @@ bool BatalhaNaval::posicionar_navio(int jogador, int linha, int coluna, int tama
         return false;
     }
 
-    const int passo_linha = horizontal ? 0 : 1;
-    const int passo_coluna = horizontal ? 1 : 0;
+    int passo_linha = horizontal ? 0 : 1;
+    int passo_coluna = horizontal ? 1 : 0;
 
-    // Both ends must be inside the sea (the ship is a straight line)
-    if (!dentro_do_mar(linha, coluna)
-        || !dentro_do_mar(linha + passo_linha * (tamanho - 1), coluna + passo_coluna * (tamanho - 1))) {
+    // The ship is a straight line, so both ends must be inside the sea
+    int ultima_linha = linha + passo_linha * (tamanho - 1);
+    int ultima_coluna = coluna + passo_coluna * (tamanho - 1);
+
+    if (!dentro_do_mar(linha, coluna) || !dentro_do_mar(ultima_linha, ultima_coluna)) {
         return false;
     }
 
-    // Every cell must be free and must not touch another ship
-    for (int i = 0; i < tamanho; ++i) {
+    // Every position must be free and must not touch another ship
+    for (int i = 0; i < tamanho; i++) {
         int l = linha + passo_linha * i;
         int c = coluna + passo_coluna * i;
 
         if (tabuleiro->consultarPosicao(l, coluna_no_tabuleiro(jogador, c)) != nullptr) {
             return false;
         }
-        for (const auto& direcao : DIRECOES) {
-            if (navio_em(*tabuleiro, jogador, l + direcao[0], c + direcao[1]) != nullptr) {
+
+        for (int d = 0; d < 4; d++) {
+            if (navio_em(tabuleiro, jogador, l + DIRECOES[d][0], c + DIRECOES[d][1]) != nullptr) {
                 return false;
             }
         }
     }
 
-    for (int i = 0; i < tamanho; ++i) {
+    for (int i = 0; i < tamanho; i++) {
         int l = linha + passo_linha * i;
         int c = coluna + passo_coluna * i;
+
         tabuleiro->atualizarPosicao(l, coluna_no_tabuleiro(jogador, c), new PecaBatalhaNaval("N", jogador));
     }
 
     if (jogador == 1) {
-        ++quantidade_navios_jogador1;
+        quantidade_navios_jogador1++;
     } else {
-        ++quantidade_navios_jogador2;
+        quantidade_navios_jogador2++;
     }
     return true;
 }
 
 std::vector<int> BatalhaNaval::_lendo_movimento(const std::string acao) const {
-    // Accepts a letter A-J (column) followed by a number 1-10 (line), e.g. "B5".
-    // Spaces around the command and lower case letters are tolerated.
-    const std::string espacos = " \t\r\n";
-    const size_t inicio = acao.find_first_not_of(espacos);
-    if (inicio == std::string::npos) {
-        return {};
-    }
-    const size_t fim = acao.find_last_not_of(espacos);
-    const std::string comando = acao.substr(inicio, fim - inicio + 1);
+    const std::string board_columns = "ABCDEFGHIJ";
+    std::vector<int> movimento;
 
-    if (comando.size() < 2 || comando.size() > 3) {
-        return {};
-    }
+    // The command is a single word (e.g. "B5"), spaces around it are ignored
+    std::stringstream input_stringstream(acao);
+    std::string comando;
+    std::string sobra;
 
-    const char letra = static_cast<char>(std::toupper(static_cast<unsigned char>(comando[0])));
-    if (letra < 'A' || letra >= 'A' + TAMANHO_MAR) {
-        return {};
+    input_stringstream >> comando;
+    if (comando.size() < 2 || comando.size() > 3 || (input_stringstream >> sobra)) {
+        return movimento;
     }
 
-    const std::string numero = comando.substr(1);
-    if (numero[0] == '0') {
-        return {};
-    }
-    for (char c : numero) {
-        if (!std::isdigit(static_cast<unsigned char>(c))) {
-            return {};
-        }
+    // First character is the column (A-J, upper or lower case)
+    size_t coluna = board_columns.find(static_cast<char>(std::toupper(static_cast<unsigned char>(comando[0]))));
+    if (coluna == std::string::npos) {
+        return movimento;
     }
 
-    const int linha = std::stoi(numero);
+    // The rest is the line (1-10), without leading zeros
+    std::string numero = comando.substr(1);
+    if (numero.find_first_not_of("0123456789") != std::string::npos || numero[0] == '0') {
+        return movimento;
+    }
+
+    int linha = std::stoi(numero);
     if (linha < 1 || linha > TAMANHO_MAR) {
-        return {};
+        return movimento;
     }
 
-    return {linha - 1, letra - 'A'};
+    movimento.push_back(linha - 1);
+    movimento.push_back(static_cast<int>(coluna));
+    return movimento;
 }
 
 bool BatalhaNaval::_movimento_valido(int linha, int coluna) const {
@@ -223,7 +219,7 @@ bool BatalhaNaval::_movimento_valido(int linha, int coluna) const {
         return false;
     }
 
-    const int alvo = oponente(indiceJogadorDaVez + 1);
+    int alvo = id_oponente(indiceJogadorDaVez + 1);
     Piece* peca = tabuleiro->consultarPosicao(linha, coluna_no_tabuleiro(alvo, coluna));
 
     // Empty water can always be attacked
@@ -231,8 +227,8 @@ bool BatalhaNaval::_movimento_valido(int linha, int coluna) const {
         return true;
     }
 
-    // A ship part can be attacked only once. Misses leave a "water" marker,
-    // which also cannot be attacked again.
+    // A ship part can be attacked only once. Misses leave a water marker,
+    // which also cannot be attacked again
     PecaBatalhaNaval* navio = dynamic_cast<PecaBatalhaNaval*>(peca);
     return navio != nullptr && navio->get_eh_navio() && !navio->get_foi_atingido();
 }
@@ -242,9 +238,8 @@ void BatalhaNaval::_executa_movimento(int linha, int coluna) {
         return;
     }
 
-    const int atacante = indiceJogadorDaVez + 1;
-    const int alvo = oponente(atacante);
-    const int coluna_tabuleiro = coluna_no_tabuleiro(alvo, coluna);
+    int alvo = id_oponente(indiceJogadorDaVez + 1);
+    int coluna_tabuleiro = coluna_no_tabuleiro(alvo, coluna);
 
     Piece* peca = tabuleiro->consultarPosicao(linha, coluna_tabuleiro);
 
@@ -253,20 +248,22 @@ void BatalhaNaval::_executa_movimento(int linha, int coluna) {
         PecaBatalhaNaval* agua = new PecaBatalhaNaval("o", alvo, false);
         agua->atingir();
         tabuleiro->atualizarPosicao(linha, coluna_tabuleiro, agua);
+
         std::cout << "Agua!" << std::endl;
         return;
     }
 
     // Hit (_movimento_valido guarantees this is an intact ship part)
-    static_cast<PecaBatalhaNaval*>(peca)->atingir();
+    PecaBatalhaNaval* navio = dynamic_cast<PecaBatalhaNaval*>(peca);
+    navio->atingir();
 
-    if (!navio_afundou(*tabuleiro, alvo, linha, coluna)) {
+    if (!verifica_navio_afundado(tabuleiro, alvo, linha, coluna)) {
         std::cout << "Acertou um navio!" << std::endl;
         return;
     }
 
     unsigned& restantes = (alvo == 1) ? quantidade_navios_jogador1 : quantidade_navios_jogador2;
-    --restantes;
+    restantes--;
     std::cout << "Voce afundou um navio! Restam " << restantes << " para o oponente." << std::endl;
 
     if (restantes == 0) {
@@ -330,10 +327,6 @@ Player* BatalhaNaval::Vencedor() const {
     }
     return nullptr;
 }
-
-// ---------------------------------------------------------------------------
-// PecaBatalhaNaval
-// ---------------------------------------------------------------------------
 
 PecaBatalhaNaval::PecaBatalhaNaval(std::string simb, int id_jogador, bool navio)
     : Piece(simb, id_jogador), eh_navio(navio), foi_atingido(false) {}
