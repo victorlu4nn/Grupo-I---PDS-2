@@ -78,6 +78,7 @@ void GameManager::executarLoopPartida() {
             partidaAtual->reiniciarPartida();
         } else if (line == "sair programa") {
             std::cout << "Encerrando programa..." << std::endl;
+            processarComandoEncerramento();
             exit(0);
         } else {
             partidaAtual->executarJogada(line);
