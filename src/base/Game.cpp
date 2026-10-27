@@ -1,8 +1,9 @@
-#include "Game.hpp"
 #include <stdexcept>
 
+#include "Game.hpp"
+
 Game::Game(const std::string& nome, Board* b, RuleBook* r)
-    : nomeJogo(nome), tabuleiro(b), regras(r), indiceJogadorDaVez(0), estadoPartida("em_andamento") {
+    : nomeJogo(nome), tabuleiro(b), regras(r), indiceJogadorDaVez(1), estadoPartida("em_andamento") {
     
     if (tabuleiro == nullptr || regras == nullptr) {
         throw std::invalid_argument("Tabuleiro e RuleBook nao podem ser nulos.");
@@ -17,7 +18,7 @@ Game::~Game() {
 void Game::alternarTurno() {
     if (jogadores.empty()) {
         indiceJogadorDaVez = 0;
-        return;
+        throw std::invalid_argument("Nenhum jogador for cadastrado para a partida.");
     }
     indiceJogadorDaVez = (indiceJogadorDaVez + 1) % jogadores.size();
 }
@@ -31,7 +32,7 @@ void Game::reiniciarPartida() {
 void Game::finalizarPartida(Player* vencedor) {
     estadoPartida = "finalizada";
     if (vencedor != nullptr) {
-        // Lógica de registro de vitória no jogador se necessário
+        vencedor->adicionarPontos(1);
     }
 }
 
