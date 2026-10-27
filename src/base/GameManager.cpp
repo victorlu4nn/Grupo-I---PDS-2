@@ -15,6 +15,12 @@ public:
             tabuleiro->limpar();
         }
     }
+    // Basic verification just for implementation
+    bool executarJogada(const std::string acao) {
+        if (acao == "jogada") {
+            return true;
+        }
+    }
 };
 
 GameManager::GameManager() : partidaAtual(nullptr) {}
@@ -50,7 +56,7 @@ void GameManager::iniciarPartida(int indice) {
 
     // Instancia os componentes necessários para a nova partida
     Board* b = new Board(8, 8);
-    RuleBook* r = new RuleBook();
+    RuleBook* r = new RuleBook("regra: ...");
 
     partidaAtual = new GameGenerico(catalogoJogos[indice], b, r);
     partidaAtual->configurarDisposicaoInicial();
@@ -61,8 +67,22 @@ void GameManager::executarLoopPartida() {
         return;
     }
 
-    // Exemplo de execução do loop principal da partida
-    // O loop continua enquanto a partida estiver em andamento
+    while (partidaAtual->getEstado() != "finalizada" && partidaAtual != nullptr) {
+        std::cout << "Insira um comando ou jogada: " << std::endl;
+
+        std::string line;
+        std::getline(std::cin, line);
+        if (line == "regras") {
+            getDescricaoRegras();
+        } else if (line == "sair partida") {
+            partidaAtual->reiniciarPartida();
+        } else if (line == "sair programa") {
+            std::cout << "Encerrando programa..." << std::endl;
+            exit(0);
+        } else {
+            partidaAtual->executarJogada(line);
+        }
+    }
 }
 
 void GameManager::processarComandoEncerramento() {
@@ -70,4 +90,11 @@ void GameManager::processarComandoEncerramento() {
         delete partidaAtual;
         partidaAtual = nullptr;
     }
+}
+
+// Function that returns the rules to the specific game 
+void GameManager::getDescricaoRegras() const {
+    RuleBook* regras_partida = partidaAtual->get_regras();
+    std::cout << "Regras de " << partidaAtual->get_nomeJogo() << " :" << std::endl;
+    std::cout << regras_partida->getDescricaoRegras() << std::endl;
 }

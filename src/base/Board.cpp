@@ -12,19 +12,21 @@ bool Board::validarCoordenadas(int x, int y) const {
     return (x >= 0 && x < linhas && y >= 0 && y < colunas);
 }
 
-std::string Board::consultarPosicao(int x, int y) const {
+Piece* Board::consultarPosicao(int x, int y) const {
     if (!validarCoordenadas(x, y)) {
         throw std::out_of_range("Coordenadas fora dos limites do tabuleiro.");
     }
     // Retorna a representação (exemplo simples mantendo estado como string)
-    return celulas[x][y] ? "Peca" : "";
+    return celulas[x][y];
 }
 
-void Board::atualizarPosicao(int x, int y, const std::string& peca) {
+void Board::atualizarPosicao(int x, int y, Piece* peca) {
     if (!validarCoordenadas(x, y)) {
         throw std::out_of_range("Coordenadas fora dos limites do tabuleiro.");
     }
-    // Lógica para alocar/atualizar a peça na posição (x, y)
+    // presumably, the implementation functions will be responsible for
+    // verifying if there is already a piece at this location.
+    celulas[x][y] = peca;
 }
 
 void Board::removerPeca(int x, int y) {

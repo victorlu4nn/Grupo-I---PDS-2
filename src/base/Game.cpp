@@ -22,24 +22,6 @@ void Game::alternarTurno() {
     indiceJogadorDaVez = (indiceJogadorDaVez + 1) % jogadores.size();
 }
 
-bool Game::executarJogada(int origemX, int origemY, int destinoX, int destinoY) {
-    if (estadoPartida != "em_andamento") {
-        return false;
-    }
-
-    if (!tabuleiro->validarCoordenadas(origemX, origemY) || 
-        !tabuleiro->validarCoordenadas(destinoX, destinoY)) {
-        return false;
-    }
-
-    // Exemplo de movimentação genérica: limpa origem e insere no destino
-    std::string peca = tabuleiro->consultarPosicao(origemX, origemY);
-    tabuleiro->removerPeca(origemX, origemY);
-    tabuleiro->atualizarPosicao(destinoX, destinoY, peca);
-
-    return true;
-}
-
 void Game::reiniciarPartida() {
     estadoPartida = "em_andamento";
     indiceJogadorDaVez = 0;
@@ -51,4 +33,16 @@ void Game::finalizarPartida(Player* vencedor) {
     if (vencedor != nullptr) {
         // Lógica de registro de vitória no jogador se necessário
     }
+}
+
+RuleBook* Game::get_regras() const {
+    return regras;
+}
+
+std::string Game::get_nomeJogo() const {
+    return nomeJogo;
+}
+
+std::string Game::getEstado() const {
+    return estadoPartida;
 }

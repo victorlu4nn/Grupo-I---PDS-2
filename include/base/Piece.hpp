@@ -16,7 +16,7 @@ enum class PieceStatus {
 };
 
 class Piece {
-    private:
+    protected:
         std::string simbolo; ///< Símbolo visual da peça no terminal (ex: "X", "O", "♔")
         PieceStatus status;  ///< Estado atual da peça
         int id_jogador;      ///< Identificador de qual jogador é o dono desta peça

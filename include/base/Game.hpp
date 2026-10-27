@@ -22,7 +22,7 @@ protected:
     Board* tabuleiro; ///< Referência do tabuleiro associado à partida.
     RuleBook* regras; ///< Livro de regras associado ao jogo.
     std::vector<Player*> jogadores; ///< Lista de jogadores participantes.
-    size_t indiceJogadorDaVez; ///< Apontador para o índice do jogador da vez.
+    int indiceJogadorDaVez; ///< Apontador para o índice do jogador da vez.
     std::string estadoPartida; ///< Estado atual da partida (ex: "em_andamento", "finalizada").
 
 public:
@@ -51,13 +51,10 @@ public:
 
     /**
      * @brief Executa uma jogada válida e atualiza o estado do tabuleiro.
-     * @param origemX Linha de origem.
-     * @param origemY Coluna de origem.
-     * @param destinoX Linha de destino.
-     * @param destinoY Coluna de destino.
+     * @param acao Comando de entrada que será passado para cada função específica.
      * @return true se executada com sucesso.
      */
-    bool executarJogada(int origemX, int origemY, int destinoX, int destinoY);
+    virtual bool executarJogada(const std::string acao) = 0;
 
     /**
      * @brief Reinicia a partida restaurando seu estado inicial sem registrar derrota.
@@ -69,6 +66,21 @@ public:
      * @param vencedor Ponteiro para o jogador vencedor (nullptr se empate).
      */
     void finalizarPartida(Player* vencedor);
+
+    /**
+     * @brief Função para ler as regras associadas ao Game.
+     */
+    RuleBook* get_regras() const;
+
+    /**
+     * @brief Função para ler o nome do Game.
+     */
+    std::string get_nomeJogo() const;
+
+    /**
+     * @brief Função para ler o estado da partida.
+     */
+    std::string getEstado() const;
 };
 
 #endif
