@@ -15,11 +15,11 @@ void Move::aplicar(Board* tabuleiro) {
     }
 
     // Salva a peça que estava no destino caso haja captura
-    tipoCaptura = tabuleiro->consultarPosicao(destinoX, destinoY);
+    Piece* peca_destino = tabuleiro->consultarPosicao(destinoX, destinoY);
 
     // Desloca a peça da origem para o destino
-    std::string pecaOrigem = tabuleiro->consultarPosicao(origemX, origemY);
-    tabuleiro->removerPeca(origemX, origemY);
+    Piece* pecaOrigem = tabuleiro->consultarPosicao(origemX, origemY);
+    tabuleiro->atualizarPosicao(origemX, origemY, nullptr);
     tabuleiro->atualizarPosicao(destinoX, destinoY, pecaOrigem);
 }
 
@@ -29,13 +29,13 @@ void Move::reverter(Board* tabuleiro) {
     }
 
     // Retorna a peça movida para a posição original
-    std::string pecaMovida = tabuleiro->consultarPosicao(destinoX, destinoY);
-    tabuleiro->removerPeca(destinoX, destinoY);
+    Piece* pecaMovida = tabuleiro->consultarPosicao(destinoX, destinoY);
+    tabuleiro->atualizarPosicao(destinoX, destinoY, nullptr);
     tabuleiro->atualizarPosicao(origemX, origemY, pecaMovida);
 
     // Restaura a peça capturada se houver
     if (!tipoCaptura.empty()) {
-        tabuleiro->atualizarPosicao(destinoX, destinoY, tipoCaptura);
+        // tabuleiro->atualizarPosicao(destinoX, destinoY, tipoCaptura);
     }
 }
 
