@@ -5,10 +5,22 @@
 
 #include "Damas.hpp"
 #include "Move.hpp"
+#include "Player.hpp"
 
-Damas::Damas(Board* damasboard, RuleBook* damasrulebook): Game("Damas", damasboard, damasrulebook) {}
+Damas::Damas(Board* damasboard, RuleBook* damasrulebook): Game("Damas", damasboard, damasrulebook) {
+    Player* jogador1 = new Player("Jogador 1", 'b');
+    Player* jogador2 = new Player("Jogador 2", 'p');
 
-Damas::~Damas(){}
+    jogadores.push_back(jogador1);
+    jogadores.push_back(jogador2);
+}
+
+Damas::~Damas(){
+    tabuleiro->limpar();
+    for (Player* jogador: jogadores) {
+        delete jogador;
+    }
+}
 
 void Damas::configurarDisposicaoInicial() {
     organizar_tabuleiro_damas(tabuleiro);
@@ -26,10 +38,10 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     bool eh_par = true;
     for (int x = 0; x <= 7; x++) {
         if (eh_par) {
-            damasboard->atualizarPosicao(x, 0, new PecaDamas("\u26C2", 1));
-            damasboard->atualizarPosicao(x, 2, new PecaDamas("\u26C2", 1));
+            damasboard->atualizarPosicao(x, 0, new PecaDamas("\u26C2", 0));
+            damasboard->atualizarPosicao(x, 2, new PecaDamas("\u26C2", 0));
         } else {
-            damasboard->atualizarPosicao(x, 1, new PecaDamas("\u26C2", 1));
+            damasboard->atualizarPosicao(x, 1, new PecaDamas("\u26C2", 0));
         }
         eh_par = !eh_par;
     }
@@ -37,10 +49,10 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     for (int x = 0; x <= 7; x++) {
         eh_par = !eh_par;    
         if (eh_par) {
-            damasboard->atualizarPosicao(x, 5, new PecaDamas("\u26C0", 2));
-            damasboard->atualizarPosicao(x, 7, new PecaDamas("\u26C0", 2));
+            damasboard->atualizarPosicao(x, 5, new PecaDamas("\u26C0", 1));
+            damasboard->atualizarPosicao(x, 7, new PecaDamas("\u26C0", 1));
         } else {
-            damasboard->atualizarPosicao(x, 6, new PecaDamas("\u26C0", 2));
+            damasboard->atualizarPosicao(x, 6, new PecaDamas("\u26C0", 1));
         }
     }
 }
