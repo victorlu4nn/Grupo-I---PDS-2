@@ -170,8 +170,15 @@ bool Damas::executarJogada(const std::string acao) {
                 pecas_idx++;
             }
 
-            tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
-            tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+            Move movimento_Damas = Move(
+                jogadores[indiceJogadorDaVez], 
+                initial_x,
+                initial_y,
+                final_x,
+                final_y    
+            );
+
+            movimento_Damas.aplicar(tabuleiro);
 
             return true;
         }
@@ -184,18 +191,34 @@ bool Damas::executarJogada(const std::string acao) {
 
                 bool is_captura = (pecas_capturadas[0] == nullptr);
 
-                tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
-                tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+                Move movimento_Damas = Move(
+                    jogadores[indiceJogadorDaVez], 
+                    initial_x,
+                    initial_y,
+                    final_x,
+                    final_y    
+                );
+
+                movimento_Damas.aplicar(tabuleiro);
 
                 return true;
+            } else {
+                std::cerr << "Erro. Movimentacao invalida, sem captura." << std::endl;
             }
         } else {
             if (!verify_if_step_back(peca_damas_de_movimento, indiceJogadorDaVez, move->coords)) {
                 std::cerr << "Erro. movimento nao pode ser feito na direcao contraria de locomocao" << std::endl;
             }
 
-            tabuleiro->atualizarPosicao(initial_x, initial_y, nullptr);
-            tabuleiro->atualizarPosicao(final_x, final_y, peca_damas_de_movimento);
+            Move movimento_Damas = Move(
+                jogadores[indiceJogadorDaVez], 
+                initial_x,
+                initial_y,
+                final_x,
+                final_y    
+            );
+
+            movimento_Damas.aplicar(tabuleiro);
 
             return true;
         }
@@ -227,9 +250,11 @@ bool Damas::_captura_valida(
         for (int index = 0; index <= (acoes.coords.size() - 4); index += 2){
             int xi = acoes.coords[index];
             int yi = acoes.coords[index + 1];
+            int xf = acoes.coords[index + 2];
+            int yf = acoes.coords[index + 3];
 
-            int intermediario_x = xi + 1;
-            int intermediario_y = yi + 1;
+            int intermediario_x = (xi + xf)/2;
+            int intermediario_y = (yi + yf)/2;
             
             Piece* peca_capturada = tabuleiro->consultarPosicao(intermediario_x, intermediario_y);
 
@@ -237,6 +262,9 @@ bool Damas::_captura_valida(
                 std::cerr << "Erro. Tentativa de captura invalida (nenhuma peca a ser capturada ou peca a ser captura pertence a voce)" << std::endl;
                 return false; 
             }
+            posicoes_capturadas.push_back(intermediario_x);
+            posicoes_capturadas.push_back(intermediario_y);
+
             PecaDamas* peca_dama_capturada = dynamic_cast<PecaDamas*>(peca_capturada);
             pecas_capturadas.push_back(peca_dama_capturada);
         }
