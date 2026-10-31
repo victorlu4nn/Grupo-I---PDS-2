@@ -22,6 +22,75 @@ Damas::~Damas(){
     }
 }
 
+// Private Methods
+
+void Damas::contagem_lances_com_damas(PecaDamas* Peca, bool captura) {
+    if (!captura && Peca->get_eh_damas()) 
+        contagem_lances_dama++;
+    else
+        contagem_lances_dama = 0;
+}
+
+bool Damas::_verifica_final_reduzido() const {
+    if (quantidade_pecas_brancas > 2 || quantidade_pecas_pretas > 2)
+        return false;
+
+    std::vector<std::string> simbolos_pecas = {
+        "\u26C3", "\u26C2", "\u26C1", "\u26C0"
+    };
+    std::vector<unsigned short> quantidades; 
+    
+    for (std::string simbolo: simbolos_pecas) {
+        unsigned short quantidade = mapa_pecas_no_tabuleiro.at(simbolo);
+        quantidades.push_back(quantidade);
+    }
+
+    if (quantidades[0] > 0 && quantidades[2] > 0) {
+        if (quantidades[0] == 2 && quantidades[1] == 0) {
+            if (
+                (quantidades[2] == 2 && quantidades[3] == 0) ||
+                (quantidades[2] == 1 && quantidades[3] == 1) ||
+                (quantidades[2] == 1 && quantidades[3] == 0)
+            ) { return true; }
+        } else if (quantidades[2] == 2 && quantidades[3] == 0) {
+            if (
+                (quantidades[0] == 1 && quantidades[1] == 1) ||
+                (quantidades[0] == 1 && quantidades[1] == 0)
+            ) { return true; }
+        } else if (quantidades[0] == 1 && quantidades[1] == 0) {
+            if (
+                (quantidades[2] == 1 && quantidades[3] == 1) ||
+                (quantidades[2] == 1 && quantidades[3] == 0)
+            ) { return true; }
+        } else if (quantidades[2] == 1 && quantidades[3] == 0) {
+            if (quantidades[0] == 1 && quantidades[1] == 1)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+
+void Damas::contagem_lances_final_reduzido(bool lance_decisivo) {
+    if (!lance_decisivo)
+        contagem_finais_reduzidos++;
+    else
+        contagem_finais_reduzidos = 0;
+}
+
+
+bool Damas::houve_empate() const {
+    if (contagem_lances_dama == 40 || contagem_finais_reduzidos == 5) {
+        return true;
+    }
+    return false;
+}
+
+
+
+// Public Methods
+
 void Damas::configurarDisposicaoInicial() {
     organizar_tabuleiro_damas(tabuleiro);
 }
@@ -40,8 +109,10 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
         if (eh_par) {
             damasboard->atualizarPosicao(x, 0, new PecaDamas("\u26C2", 0));
             damasboard->atualizarPosicao(x, 2, new PecaDamas("\u26C2", 0));
+            quantidade_pecas_brancas += 2;
         } else {
             damasboard->atualizarPosicao(x, 1, new PecaDamas("\u26C2", 0));
+            quantidade_pecas_brancas++;
         }
         eh_par = !eh_par;
     }
@@ -51,8 +122,10 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
         if (eh_par) {
             damasboard->atualizarPosicao(x, 5, new PecaDamas("\u26C0", 1));
             damasboard->atualizarPosicao(x, 7, new PecaDamas("\u26C0", 1));
+            quantidade_pecas_pretas += 2;
         } else {
             damasboard->atualizarPosicao(x, 6, new PecaDamas("\u26C0", 1));
+            quantidade_pecas_pretas++;
         }
     }
 }
@@ -72,6 +145,10 @@ std::vector<std::string> Damas::_lendo_movimento(const std::string acao) const {
     }
 
     if (tokens.size() < 2) {
+        if (tokens[0] == "empate") {
+
+        }
+
         std::cerr << "Erro. Movimento precisa de uma posicao inicial e final." << std::endl;
     }
 
@@ -167,6 +244,12 @@ bool Damas::executarJogada(const std::string acao) {
                 int y_peca = posicoes_capturadas[pecas_idx];
                 tabuleiro->removerPeca(x_peca, y_peca);
 
+                if (peca_damas_de_movimento->ler_id_jogador() == 0) {
+                    quantidade_pecas_pretas--;
+                } else {
+                    quantidade_pecas_brancas--;
+                }
+
                 pecas_idx++;
             }
 
@@ -189,7 +272,11 @@ bool Damas::executarJogada(const std::string acao) {
                 int y_peca = posicoes_capturadas[1];
                 tabuleiro->removerPeca(x_peca, y_peca);
 
-                bool is_captura = (pecas_capturadas[0] == nullptr);
+                if (peca_damas_de_movimento->ler_id_jogador() == 0) {
+                    quantidade_pecas_pretas--;
+                } else {
+                    quantidade_pecas_brancas--;
+                }
 
                 Move movimento_Damas = Move(
                     jogadores[indiceJogadorDaVez], 
@@ -206,7 +293,7 @@ bool Damas::executarJogada(const std::string acao) {
                 std::cerr << "Erro. Movimentacao invalida, sem captura." << std::endl;
             }
         } else {
-            if (!verify_if_step_back(peca_damas_de_movimento, indiceJogadorDaVez, move->coords)) {
+            if (verify_if_step_back(peca_damas_de_movimento, indiceJogadorDaVez, move->coords)) {
                 std::cerr << "Erro. movimento nao pode ser feito na direcao contraria de locomocao" << std::endl;
             }
 
@@ -227,12 +314,12 @@ bool Damas::executarJogada(const std::string acao) {
 
 bool verify_if_step_back(PecaDamas* peca, int id, std::vector<int> coords) {
     if (!peca->get_eh_damas()) {
-        int x0 = coords[0];
-        int x1 = coords[2];
+        int y0 = coords[1];
+        int y1 = coords[3];
 
-        if (id == 1 && x1 < x0) {
+        if (id == 0 && y1 < y0) {
             return true;
-        } else if (id == 2 && x1 > x0) {
+        } else if (id == 1 && y1 > y0) {
             return true;
         }
     }
@@ -307,6 +394,18 @@ bool Damas::_captura_valida(
     return true;
 }
 
+
+bool Damas::FimdeJogo() const {
+
+}
+
+
+
+//
+//
+// Implemented PecaDamas
+//
+//
 
 PecaDamas::PecaDamas(std::string simb, int id): Piece(simb, id) {};
 
