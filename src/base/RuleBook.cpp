@@ -45,6 +45,7 @@ bool RuleBook::verificarVitoria(Board* tabuleiro) const {
             Piece* p2 = tabuleiro->consultarPosicao(i, 1);
             Piece* p3 = tabuleiro->consultarPosicao(i, 2);
 
+            // As posicoes guardam Piece*: compara o simbolo das pecas, nao os ponteiros
             if (p1 != nullptr && p2 != nullptr && p3 != nullptr &&
                 p1->ler_simbolo() == p2->ler_simbolo() &&
                 p2->ler_simbolo() == p3->ler_simbolo()) {
