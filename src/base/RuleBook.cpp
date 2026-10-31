@@ -45,7 +45,9 @@ bool RuleBook::verificarVitoria(Board* tabuleiro) const {
             Piece* p2 = tabuleiro->consultarPosicao(i, 1);
             Piece* p3 = tabuleiro->consultarPosicao(i, 2);
 
-            if (!(p1 == nullptr) && p1 == p2 && p2 == p3) {
+            if (p1 != nullptr && p2 != nullptr && p3 != nullptr &&
+                p1->ler_simbolo() == p2->ler_simbolo() &&
+                p2->ler_simbolo() == p3->ler_simbolo()) {
                 return true;
             }
         }
