@@ -15,14 +15,6 @@
 #include "Game.hpp"
 #include "Board.hpp"
 
-/**
- * @struct PlayerDamas
- * @brief Estrutura que armazena o mapeamento de peças de um jogador no tabuleiro.
- */
-struct PlayerDamas {
-    std::map<std::string, unsigned short> mapa_pecas_no_tabuleiro;
-};
-
 struct Movimento_Valido {
     bool eh_valido = false;
     std::vector<int> coords;
@@ -34,7 +26,7 @@ class PecaDamas;
  * @class Damas
  * @brief Classe principal que gerencia a lógica, regras, tabuleiro e estados de uma partida de Damas.
  */
-class Damas: public Game, PlayerDamas {
+class Damas: public Game {
     private:
         // Variables that are going to determine how many pieces 
         // of each team there are on the board
@@ -42,17 +34,19 @@ class Damas: public Game, PlayerDamas {
         unsigned quantidade_pecas_pretas;
         unsigned short contagem_lances_dama = 0;
         unsigned short contagem_finais_reduzidos = 0;
+        std::map<std::string, unsigned short> mapa_pecas_no_tabuleiro;
 
         // We also have to consider a draw position. In this case, we can compute 
         // some scenarios. We will be working with three of them:
-        // 1. 20 moves with Dama, without capture or normal piece move
+        // 1. 40 moves with Dama, without capture or normal piece move
         // 2. Reduced endings (Regra brasileira)
         
         /**
          * @brief Atualiza e verifica a contagem de lances efetuados exclusivamente com damas.
          * @param Peca Ponteiro para a peça que realizou o movimento.
+         * @param captura true indica que o movimento teve alguma captura.
          */
-        void contagem_lances_com_damas(PecaDamas* Peca);
+        void contagem_lances_com_damas(PecaDamas* Peca, bool captura);
 
         /**
          * @brief Verifica se a configuração atual do tabuleiro se enquadra em um final reduzido.
