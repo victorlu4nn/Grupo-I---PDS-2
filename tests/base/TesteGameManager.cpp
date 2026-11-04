@@ -1,4 +1,3 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "GameManager.hpp"
 #include "Game.hpp"
@@ -23,12 +22,12 @@ TEST_CASE("GameManager - Gerenciamento de Catálogo") {
     }
 
     SUBCASE("Registrar jogos no catálogo") {
-        manager.registrarJogo("Xadrez");
+        manager.registrarJogo("Connect4");
         manager.registrarJogo("Damas");
 
         auto jogos = manager.listarJogos();
         CHECK(jogos.size() == 2);
-        CHECK(jogos[0] == "Xadrez");
+        CHECK(jogos[0] == "Connect4");
         CHECK(jogos[1] == "Damas");
     }
 
@@ -39,7 +38,7 @@ TEST_CASE("GameManager - Gerenciamento de Catálogo") {
 
 TEST_CASE("GameManager - Inicialização de Partida") {
     GameManager manager;
-    manager.registrarJogo("Xadrez");
+    manager.registrarJogo("Connect4");
     manager.registrarJogo("Damas");
 
     SUBCASE("Iniciar partida com índice válido") {
@@ -61,7 +60,7 @@ TEST_CASE("GameManager - Inicialização de Partida") {
 
 TEST_CASE("GameManager - Comandos e Limpeza") {
     GameManager manager;
-    manager.registrarJogo("Xadrez");
+    manager.registrarJogo("Connect4");
 
     SUBCASE("Processar comando de encerramento sem partida ativa") {
         CHECK_NOTHROW(manager.processarComandoEncerramento());

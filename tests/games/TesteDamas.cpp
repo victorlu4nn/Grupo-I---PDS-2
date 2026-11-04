@@ -10,7 +10,8 @@ class PecaDamaTeste: public PecaDamas {
 
 TEST_CASE("Teste das propriedades e comportamentos de PecaDamas") {
     // Initialize a common piece
-    PecaDamaTeste* peca = new PecaDamaTeste("b", 1);
+    PecaDamaTeste ficha("b", 1);
+    PecaDamaTeste* peca = &ficha;
     
     CHECK(peca->get_eh_damas() == false);
     
@@ -26,14 +27,14 @@ TEST_CASE("Teste de inicialização do jogo Damas") {
     CHECK_FALSE(jogo.FimdeJogo());
     
     // Verifies if there is no exception in board building
-    CHECK_NOTHROW(jogo.organizar_tabuleiro_damas());
+    CHECK_NOTHROW(jogo.configurarDisposicaoInicial());
 }
 
 TEST_CASE("Teste de leitura de movimentos e ações") {
     Damas jogo;
     
     // Tests reading movement command
-    std::vector<int> movimento = jogo._lendo_movimento("a1 para b2");
+    std::vector<std::string> movimento = jogo._lendo_movimento("a1 para b2");
     
     // Verifies if the vector has the expected values
     CHECK_FALSE(movimento.empty());
