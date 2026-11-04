@@ -94,3 +94,129 @@ TEST_CASE("Connect4 - comandos textuais e chamada pela classe base") { // Regist
     Game& base = jogo; // Cria uma referência Game para a mesma partida, permitindo testar o despacho virtual.
     for (const char* comando : {"", " ", "abc", "3x", "2 3", "1.5", // Percorre textos inválidos: vazio, espaços, letras, sufixo, dois números e decimal.
                                 "999999999999999999999", "-1", "7"}) { // Inclui um número grande demais para int e duas colunas fora da faixa, completando a lista.
+        CHECK_FALSE(base.executarJogada(comando)); // Confere que seja FALSO que o comando comando seja aceito pela interface de jogada.
+        CHECK(jogo.turno() == 0); // Confere que o turno seja 0 (0: primeiro jogador; 1: segundo jogador).
+    } // Encerra este bloco de instruções.
+    REQUIRE(base.executarJogada(" 0 ")); // Exige, interrompendo o caso se falhar, que o comando " 0 " seja aceito pela interface de jogada.
+    REQUIRE(base.executarJogada("6")); // Exige, interrompendo o caso se falhar, que o comando "6" seja aceito pela interface de jogada.
+    CHECK(jogo.peca(5, 0)->ler_id_jogador() == 1); // Confere que a ficha pertença ao jogador de ID 1.
+    CHECK(jogo.peca(5, 6)->ler_id_jogador() == 2); // Confere que a ficha pertença ao jogador de ID 2.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - vitoria horizontal e bloqueio apos o fim") { // Registra no doctest um caso independente: Connect4 - vitoria horizontal e bloqueio apos o fim.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    jogar(jogo, {0, 6, 1, 6, 2, 5}); // Executa, da esquerda para a direita, as colunas listadas; os jogadores se alternam a cada inserção válida.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+    REQUIRE(jogo.soltarPeca(3)); // Exige, interrompendo o caso se falhar, que a inserção na coluna 3 seja aceita.
+    CHECK(jogo.FimdeJogo()); // Confere que a consulta indique término da partida.
+    CHECK(jogo.Vencedor() == jogo.jogador(0)); // Confere que o vencedor seja o jogador de índice 0.
+    CHECK(jogo.getEstado() == "finalizada"); // Confere que o estado da partida seja "finalizada".
+    CHECK(jogo.verificar4EmLinha(5, 1)); // Consulta no meio da sequencia. // Confere que exista uma sequência de quatro fichas do mesmo dono passando por 5, 1.
+    const int pontos = jogo.jogador(0)->getPontuacao(); // Guarda a pontuação atual para conferir que jogadas bloqueadas não a alteram.
+    const int turno = jogo.turno(); // Guarda o turno atual para compará-lo após uma tentativa inválida.
+    CHECK_FALSE(jogo.soltarPeca(4)); // Confere que seja FALSO que a inserção na coluna 4 seja aceita.
+    CHECK_FALSE(jogo.executarJogada("4")); // Confere que seja FALSO que o comando "4" seja aceito pela interface de jogada.
+    CHECK(jogo.peca(5, 4) == nullptr); // Confere que a casa consultada esteja vazia.
+    CHECK(jogo.turno() == turno); // Confere que o turno seja turno (0: primeiro jogador; 1: segundo jogador).
+    CHECK(jogo.jogador(0)->getPontuacao() == pontos); // Confere que a pontuação permaneça igual ao valor guardado antes da tentativa inválida.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - vitoria vertical do segundo jogador") { // Registra no doctest um caso independente: Connect4 - vitoria vertical do segundo jogador.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    jogar(jogo, {0, 6, 1, 6, 0, 6, 1}); // Executa, da esquerda para a direita, as colunas listadas; os jogadores se alternam a cada inserção válida.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+    REQUIRE(jogo.soltarPeca(6)); // Exige, interrompendo o caso se falhar, que a inserção na coluna 6 seja aceita.
+    CHECK(jogo.FimdeJogo()); // Confere que a consulta indique término da partida.
+    CHECK(jogo.Vencedor() == jogo.jogador(1)); // Confere que o vencedor seja o jogador de índice 1.
+    CHECK(jogo.verificar4EmLinha(2, 6)); // Confere que exista uma sequência de quatro fichas do mesmo dono passando por 2, 6.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - vitoria nas duas diagonais") { // Registra no doctest um caso independente: Connect4 - vitoria nas duas diagonais.
+    // Sequencia espelhada cobre os dois sentidos da diagonal.
+    for (bool espelhar : {false, true}) { // Executa o cenário duas vezes: normal e espelhado horizontalmente, cobrindo ambas as diagonais.
+        Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+        for (int c : {0, 1, 1, 2, 4, 2, 2, 3, 4, 3, 5, 3}) { // Percorre uma sequência que monta os apoios para uma vitória diagonal sem encerrar a partida antes.
+            REQUIRE(jogo.soltarPeca(espelhar ? 6 - c : c)); // Exige, interrompendo o caso se falhar, que a inserção na coluna espelhar ? 6 - c : c seja aceita.
+            CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+        } // Encerra este bloco de instruções.
+        REQUIRE(jogo.soltarPeca(3)); // Exige, interrompendo o caso se falhar, que a inserção na coluna 3 seja aceita.
+        CHECK(jogo.FimdeJogo()); // Confere que a consulta indique término da partida.
+        CHECK(jogo.Vencedor() == jogo.jogador(0)); // Confere que o vencedor seja o jogador de índice 0.
+        CHECK(jogo.verificar4EmLinha(2, 3)); // Confere que exista uma sequência de quatro fichas do mesmo dono passando por 2, 3.
+    } // Encerra este bloco de instruções.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - coordenadas invalidas, casa vazia e fichas separadas") { // Registra no doctest um caso independente: Connect4 - coordenadas invalidas, casa vazia e fichas separadas.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    CHECK_FALSE(jogo.verificar4EmLinha(-1, 0)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por -1, 0.
+    CHECK_FALSE(jogo.verificar4EmLinha(6, 0)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por 6, 0.
+    CHECK_FALSE(jogo.verificar4EmLinha(0, -1)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por 0, -1.
+    CHECK_FALSE(jogo.verificar4EmLinha(0, 7)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por 0, 7.
+    CHECK_FALSE(jogo.verificar4EmLinha(5, 0)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por 5, 0.
+    jogar(jogo, {0, 0, 1, 1, 3, 3, 4}); // Executa, da esquerda para a direita, as colunas listadas; os jogadores se alternam a cada inserção válida.
+    CHECK_FALSE(jogo.verificar4EmLinha(5, 1)); // Confere que seja FALSO que exista uma sequência de quatro fichas do mesmo dono passando por 5, 1.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+    CHECK(jogo.Vencedor() == nullptr); // Confere que não exista jogador vencedor.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - empate apos 42 jogadas legais") { // Registra no doctest um caso independente: Connect4 - empate apos 42 jogadas legais.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    const int colunas[] = { // Declara a sequência de 42 colunas usada para preencher o tabuleiro sem quatro fichas alinhadas.
+        5, 2, 0, 4, 0, 3, 6, 6, 4, 4, 4, 0, 4, 2, // Define as primeiras 14 jogadas do cenário de empate, na ordem em que serão realizadas.
+        3, 3, 2, 2, 6, 2, 6, 6, 0, 6, 0, 5, 2, 5, // Define as jogadas 15 a 28, continuando a alternância normal entre os jogadores.
+        4, 5, 5, 5, 1, 0, 3, 3, 3, 1, 1, 1, 1, 1 // Define as últimas 14 jogadas, completando as 42 casas do tabuleiro.
+    }; // Encerra a declaração da classe ou a lista de inicialização acima.
+    for (int i = 0; i < 42; ++i) { // Executa uma jogada por iteração, usando índices de 0 a 41.
+        REQUIRE(jogo.soltarPeca(colunas[i])); // Exige, interrompendo o caso se falhar, que a inserção na coluna colunas[i] seja aceita.
+        CHECK(jogo.Vencedor() == nullptr); // Confere que não exista jogador vencedor.
+        CHECK(jogo.FimdeJogo() == (i == 41)); // Confere que o jogo termine apenas na última jogada, de índice 41.
+    } // Encerra este bloco de instruções.
+    CHECK(jogo.getEstado() == "finalizada"); // Confere que o estado da partida seja "finalizada".
+    CHECK_FALSE(jogo.soltarPeca(0)); // Confere que seja FALSO que a inserção na coluna 0 seja aceita.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - reinicializacao depois de uma vitoria") { // Registra no doctest um caso independente: Connect4 - reinicializacao depois de uma vitoria.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    jogar(jogo, {0, 6, 1, 6, 2, 5, 3}); // Executa, da esquerda para a direita, as colunas listadas; os jogadores se alternam a cada inserção válida.
+    REQUIRE(jogo.FimdeJogo()); // Exige, interrompendo o caso se falhar, que a consulta indique término da partida.
+    CHECK_NOTHROW(jogo.configurarDisposicaoInicial()); // Confere que a reinicialização direta seja executada sem lançar exceção.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+    CHECK(jogo.Vencedor() == nullptr); // Confere que não exista jogador vencedor.
+    CHECK(jogo.getEstado() == "em_andamento"); // Confere que o estado da partida seja "em_andamento".
+    CHECK(jogo.turno() == 0); // Confere que o turno seja 0 (0: primeiro jogador; 1: segundo jogador).
+    for (int l = 0; l < 6; ++l) // Percorre todas as linhas para verificar o estado do tabuleiro.
+        for (int c = 0; c < 7; ++c) CHECK(jogo.peca(l, c) == nullptr); // Percorre as colunas e confere que cada casa está vazia; CHECK registra falha e continua o teste.
+    REQUIRE(jogo.soltarPeca(0)); // Exige, interrompendo o caso se falhar, que a inserção na coluna 0 seja aceita.
+    CHECK(jogo.peca(5, 0)->ler_id_jogador() == 1); // Confere que a ficha pertença ao jogador de ID 1.
+    CHECK_NOTHROW(jogo.configurarDisposicaoInicial()); // Confere que a reinicialização direta seja executada sem lançar exceção.
+    CHECK_NOTHROW(jogo.configurarDisposicaoInicial()); // Confere que a reinicialização direta seja executada sem lançar exceção.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - reiniciarPartida pela interface Game") { // Registra no doctest um caso independente: Connect4 - reiniciarPartida pela interface Game.
+    Connect4Teste jogo; // Cria uma partida independente para este cenário; ela será destruída automaticamente ao sair do escopo.
+    jogar(jogo, {0, 6, 1, 6, 2, 5, 3}); // Executa, da esquerda para a direita, as colunas listadas; os jogadores se alternam a cada inserção válida.
+    REQUIRE(jogo.FimdeJogo()); // Exige, interrompendo o caso se falhar, que a consulta indique término da partida.
+    Game& base = jogo; // Cria uma referência Game para a mesma partida, permitindo testar o despacho virtual.
+    CHECK_NOTHROW(base.reiniciarPartida()); // Confere que a reinicialização pela interface Game seja executada sem lançar exceção.
+    CHECK(jogo.getEstado() == "em_andamento"); // Confere que o estado da partida seja "em_andamento".
+    CHECK(jogo.turno() == 0); // Confere que o turno seja 0 (0: primeiro jogador; 1: segundo jogador).
+    CHECK(jogo.Vencedor() == nullptr); // Confere que não exista jogador vencedor.
+    CHECK_FALSE(jogo.FimdeJogo()); // Confere que seja FALSO que a consulta indique término da partida.
+    for (int l = 0; l < 6; ++l) // Percorre todas as linhas para verificar o estado do tabuleiro.
+        for (int c = 0; c < 7; ++c) CHECK(jogo.peca(l, c) == nullptr); // Percorre as colunas e confere que cada casa está vazia; CHECK registra falha e continua o teste.
+    REQUIRE(base.executarJogada("6")); // Exige, interrompendo o caso se falhar, que o comando "6" seja aceito pela interface de jogada.
+    CHECK(jogo.peca(5, 6)->ler_id_jogador() == 1); // Confere que a ficha pertença ao jogador de ID 1.
+} // Encerra este bloco de instruções.
+
+TEST_CASE("Connect4 - destruicao pela interface Game") { // Registra no doctest um caso independente: Connect4 - destruicao pela interface Game.
+    Game* jogo = new Connect4(); // Cria dinamicamente um Connect4 e guarda seu endereço como ponteiro para Game.
+    REQUIRE(jogo->executarJogada("0")); // Exige, interrompendo o caso se falhar, que o comando "0" seja aceito pela interface de jogada.
+    REQUIRE(jogo->executarJogada("1")); // Exige, interrompendo o caso se falhar, que o comando "1" seja aceito pela interface de jogada.
+    CHECK_NOTHROW(delete jogo); // Confere que a destruição pela interface Game não lance exceção; isso, sozinho, não comprova ausência de vazamentos.
+} // Encerra este bloco de instruções.
+
+static_assert(!std::is_copy_constructible<Connect4>::value, // Exige em tempo de compilação que Connect4 não possa ser construído por cópia.
+              "A partida nao deve compartilhar ponteiros por copia rasa"); // Define a mensagem da verificação que impede duplicar ponteiros por cópia.
+static_assert(!std::is_copy_assignable<Connect4>::value, // Exige em tempo de compilação que Connect4 não aceite atribuição por cópia.
+              "A atribuicao nao deve duplicar a posse dos recursos"); // Define a mensagem exibida se a proteção contra atribuição por cópia deixar de existir.

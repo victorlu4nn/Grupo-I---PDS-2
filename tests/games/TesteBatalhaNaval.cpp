@@ -8,24 +8,23 @@
 #include <string>
 
 TEST_CASE("Teste de inicializacao do jogo Batalha Naval") {
-    Board* tabuleiro = new Board(10, 20);
-    RuleBook* regras = new RuleBook("Regras de teste");
+    Board tabuleiro(10, 20);
+    RuleBook regras("Regras de teste");
 
-    BatalhaNaval jogo(tabuleiro, regras);
+    BatalhaNaval jogo(&tabuleiro, &regras);
 
     CHECK_FALSE(jogo.FimdeJogo());
 
     CHECK_NOTHROW(jogo.organizar_tabuleiro_batalha_naval());
 
-    delete tabuleiro;
-    delete regras;
+
 }
 
 TEST_CASE("Teste de leitura de coordenadas") {
-    Board* tabuleiro = new Board(10, 20);
-    RuleBook* regras = new RuleBook("Regras de teste");
+    Board tabuleiro(10, 20);
+    RuleBook regras("Regras de teste");
 
-    BatalhaNaval jogo(tabuleiro, regras);
+    BatalhaNaval jogo(&tabuleiro, &regras);
 
     SUBCASE("Coordenada valida") {
         std::vector<int> movimento = jogo._lendo_movimento("B5");
@@ -50,15 +49,14 @@ TEST_CASE("Teste de leitura de coordenadas") {
         CHECK(jogo._lendo_movimento("ABC").empty());
     }
 
-    delete tabuleiro;
-    delete regras;
+
 }
 
 TEST_CASE("Teste de rejeicao de jogadas invalidas") {
-    Board* tabuleiro = new Board(10, 20);
-    RuleBook* regras = new RuleBook("Regras de teste");
+    Board tabuleiro(10, 20);
+    RuleBook regras("Regras de teste");
 
-    BatalhaNaval jogo(tabuleiro, regras);
+    BatalhaNaval jogo(&tabuleiro, &regras);
     jogo.organizar_tabuleiro_batalha_naval();
 
     CHECK_FALSE(jogo.executarJogada("K5"));
@@ -67,6 +65,5 @@ TEST_CASE("Teste de rejeicao de jogadas invalidas") {
 
     CHECK_FALSE(jogo.FimdeJogo());
 
-    delete tabuleiro;
-    delete regras;
+
 }

@@ -26,6 +26,7 @@ public: // Os membros seguintes podem ser usados por código externo à classe.
     // Declaracao necessaria porque executarJogada e virtual pura em Game.
     // O comando deve conter uma coluna de 0 a 6 (exemplo: "3").
     bool executarJogada(const std::string acao) override; // Declara a interpretação do comando textual; retorna se a jogada foi realizada.
+    void exibir(std::ostream& saida) const override;
     bool soltarPeca(int coluna); // Declara a inserção com gravidade na coluna indicada; true representa sucesso.
     bool FimdeJogo() const; // Declara a consulta de vitória ou empate; const impede alterar diretamente os membros do objeto.
     Player* Vencedor() const; // Declara a consulta que devolve um jogador existente ou nullptr quando não há vencedor.
