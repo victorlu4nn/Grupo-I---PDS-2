@@ -11,7 +11,6 @@
 #include <map>
 
 #include "Piece.hpp"
-#include "Move.hpp"
 #include "Game.hpp"
 #include "Board.hpp"
 
@@ -97,10 +96,10 @@ class Damas: public Game {
         // that inspects if there is at least one diagonal free for the player
         /**
          * @brief Verifica se o jogador atual possui pelo menos um movimento válido disponível.
-         * @param celulas Matriz atual de células do tabuleiro contendo as peças.
+         * @param id_jogador id do jogador a ser verificado possibilidade de movimento.
          * @return true se houver movimentos válidos, false se o jogador estiver travado.
          */
-        bool _verifica_se_ha_movimento(std::vector<std::vector<PecaDamas*>> celulas) const;
+        bool _verifica_se_ha_movimento(int id_jogador) const;
 
         // Verifies if the capture is valid. Takes the vector as an argument
         // and checks if every capture command is valid to validate it
@@ -127,19 +126,26 @@ class Damas: public Game {
          */
         void configurarDisposicaoInicial() override;
 
+        // Determines if piece reached the final opposite row of the board
+        /**
+         * @brief Verifica se a peça alcançou a fileira extrema oposta do tabuleiro.
+         * @return true se estiver na linha de coroação, false caso contrário.
+         */
+        void final_tabuleiro(PecaDamas* peca, int y_final);
+
         // Returns if the game has ended
         /**
          * @brief Verifica se a partida chegou ao fim (por vitória ou empate).
          * @return true se o jogo acabou, false se continua em andamento.
          */
-        bool FimdeJogo() const;
+        bool FimdeJogo(int id_jogador) const;
 
         // Returns the winner
         /**
          * @brief Identifica e retorna o jogador vencedor da partida.
          * @return Player* Ponteiro para o jogador vitorioso, ou nullptr em caso de empate/jogo em curso.
          */
-        Player* Vencedor() const;
+        Player* Vencedor(int id_ganhador) const;
 };
 
 /**
@@ -198,26 +204,13 @@ class PecaDamas: public Piece {
          */
         Movimento_Valido* _movimento_valido(
             std::vector<std::string> movimento_padronizado,
-            Board* tabuleiro_damas
+            const Board* tabuleiro_damas
         ) const;
 
         // Movement to be validate according to the board boundaries and apply
         // changes to the board
         bool movimento_valido(int x_orig, int y_orig, int x_dest, int y_dest, const Board& board_status) const override;
 
-        // Literally calls movement and updates piece locals
-        /**
-         * @brief Executa fisicamente o movimento, atualizando a posição local da peça.
-         * @param movimento Estrutura de coordenadas do movimento a ser efetuado.
-         */
-        void _executa_movimento(Move movimento);
-
-        // Determines if piece reached the final opposite row of the board
-        /**
-         * @brief Verifica se a peça alcançou a fileira extrema oposta do tabuleiro.
-         * @return true se estiver na linha de coroação, false caso contrário.
-         */
-        bool final_tabuleiro() const;
 };
 
 #endif
