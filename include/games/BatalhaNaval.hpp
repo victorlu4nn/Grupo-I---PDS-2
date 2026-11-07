@@ -30,6 +30,7 @@ private:
     /**
      * @brief Quantidade de navios restantes do jogador 1.
      */
+    bool ataques_iniciados = false;
     unsigned quantidade_navios_jogador1;
 
     /**
@@ -43,10 +44,12 @@ public:
      * @param tabuleiro Ponteiro para o tabuleiro compartilhado pelos dois mares.
      * @param regras Ponteiro para o conjunto de regras da partida.
      */
+    BatalhaNaval();
     BatalhaNaval(Board* tabuleiro, RuleBook* regras);
+    void exibir(std::ostream& saida) const override;
 
     /**
-     * @brief Destrói a partida e libera os jogadores criados pela classe.
+     * @brief Destrói a partida; Game libera os jogadores e os recursos próprios.
      */
     ~BatalhaNaval() override;
 
@@ -116,13 +119,15 @@ public:
      * @brief Verifica se uma posição do mar adversário pode ser atacada.
      * @param linha Linha da posição atacada, começando em zero.
      * @param coluna Coluna da posição atacada, começando em zero.
-     * @return true se a posição estiver dentro dos limites e ainda não tiver
+     * @return true se a partida estiver ativa, com ambas as frotas, e a posição ainda não tiver
      * sido atacada; false caso contrário.
      */
     bool _movimento_valido(int linha, int coluna) const;
 
     /**
      * @brief Executa o ataque à posição indicada do mar adversário.
+     * @throws std::invalid_argument Se o ataque for inválido.
+     * @note Este auxiliar não alterna o turno; prefira executarJogada.
      * @param linha Linha da posição atacada, começando em zero.
      * @param coluna Coluna da posição atacada, começando em zero.
      */

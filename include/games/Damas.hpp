@@ -1,11 +1,6 @@
-/**
- * @file Damas.hpp
- * @brief Definição das classes e estruturas para o jogo de Damas no contexto de PDS 2.
- */
-
 #ifndef DAMAS_HPP
 #define DAMAS_HPP
-
+#include <map>
 #include <string>
 #include <vector>
 #include <map>
@@ -34,6 +29,9 @@ class Damas: public Game {
         unsigned short contagem_lances_dama = 0;
         unsigned short contagem_finais_reduzidos = 0;
         std::map<std::string, unsigned short> mapa_pecas_no_tabuleiro;
+
+        // Winner id when the game ends (-1 = draw or no winner yet)
+        int id_vencedor = -1;
 
         // We also have to consider a draw position. In this case, we can compute 
         // some scenarios. We will be working with three of them:
@@ -68,6 +66,11 @@ class Damas: public Game {
     public:
         // Constructor and Destructor
         /**
+         * @brief Constrói o jogo Damas criando o próprio tabuleiro 8x8 e as regras.
+         */
+        Damas();
+
+        /**
          * @brief Constrói um novo objeto do jogo Damas, inicializando o estado inicial.
          */
         Damas(Board * damasboard, RuleBook* damasrulebook);
@@ -75,7 +78,7 @@ class Damas: public Game {
         /**
          * @brief Destrói o objeto Damas, liberando recursos alocados.
          */
-        ~Damas();
+        ~Damas() override;
 
         // Function that reads and organize actions based on the input reading
         // the main idea is to be able to read and struture multiple movements
@@ -125,13 +128,14 @@ class Damas: public Game {
          * @brief Organiza e posiciona as peças nas posições iniciais padrão do tabuleiro de damas.
          */
         void configurarDisposicaoInicial() override;
-
+        
         // Determines if piece reached the final opposite row of the board
         /**
          * @brief Verifica se a peça alcançou a fileira extrema oposta do tabuleiro.
          * @return true se estiver na linha de coroação, false caso contrário.
          */
         void final_tabuleiro(PecaDamas* peca, int y_final);
+
 
         // Returns if the game has ended
         /**
@@ -146,6 +150,8 @@ class Damas: public Game {
          * @return Player* Ponteiro para o jogador vitorioso, ou nullptr em caso de empate/jogo em curso.
          */
         Player* Vencedor(int id_ganhador) const;
+
+        void exibir(std::ostream& saida) const override;
 };
 
 /**
@@ -178,7 +184,7 @@ class PecaDamas: public Piece {
         /**
          * @brief Destrói a peça de Damas quando ela é capturada e removida do tabuleiro.
          */
-        ~PecaDamas();
+        ~PecaDamas() override;
 
         // Getter para ler se peça eh dama
         /**
@@ -210,7 +216,5 @@ class PecaDamas: public Piece {
         // Movement to be validate according to the board boundaries and apply
         // changes to the board
         bool movimento_valido(int x_orig, int y_orig, int x_dest, int y_dest, const Board& board_status) const override;
-
 };
-
 #endif

@@ -1,4 +1,3 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "Piece.hpp"
 #include "Board.hpp"
@@ -11,7 +10,7 @@ public:
         : Piece(simbolo, id_jogador) {}
 
     // Implementação simples de movimento válido (exemplo: movimento ortogonal de 1 casa)
-    bool movimento_valido(int x_orig, int y_orig, int x_dest, int y_dest, const Board& board_status) const override {
+    bool movimento_valido(int x_orig, int y_orig, int x_dest, int y_dest, const Board&) const override {
         int dx = std::abs(x_dest - x_orig);
         int dy = std::abs(y_dest - y_orig);
         return (dx + dy == 1);

@@ -1,62 +1,49 @@
 #include "doctest.h"
-#include "Piece.hpp"
-#include "Player.hpp"
-#include "Board.hpp"
 #include "Move.hpp"
+#include "ApoioTestes.hpp"
 #include <stdexcept>
 
-class PecaQualquer: public Piece {
-    public:
-        PecaQualquer(std::string simb, int id): Piece(simb, id) {};
-        bool movimento_valido(
-            int x_orig, 
-            int y_orig, 
-            int x_dest, 
-            int y_dest, 
-            const Board& board_status
-        ) const override {
-            return true;
-        }
-        std::string get_simbolo() const {
-            return simbolo;
-        }
-};
-
-class JogadorQualquer: public Player {
-    public:
-        JogadorQualquer(const std::string& n, char simb): Player(n, simb) {};
-};
-
-TEST_CASE("Analisando insercao de pecas"){
-    Board tabuleiro(8, 8);
-    JogadorQualquer jogador1("Isaac Newton", 'b');
-
-    PecaQualquer* peca1 = new PecaQualquer("U+2617", 1);
-    tabuleiro.atualizarPosicao(1, 1, peca1->get_simbolo());
-
-    SUBCASE("Atualizando a posição de peças") {
-        Move movimento(&jogador1, 1, 1, 2, 2);
-        movimento.aplicar(&tabuleiro);
-
-        CHECK(tabuleiro.consultarPosicao(1, 1) == "");
-        CHECK(tabuleiro.consultarPosicao(2, 2) == "U+2617");
-    }
-    SUBCASE("Reverter a jogada") {
-        Move movimento(&jogador1, 1, 1, 2, 2);
-        movimento.aplicar(&tabuleiro);
-        movimento.reverter(&tabuleiro);
-
-        CHECK(tabuleiro.consultarPosicao(1, 1) == "U+2617");
-        CHECK(tabuleiro.consultarPosicao(2, 2) == "");
-    }
-    SUBCASE("Aplicação de lógica de captura") {
-        PecaQualquer* peca2 = new PecaQualquer("U+2616", 2);
-        tabuleiro.atualizarPosicao(2, 2, peca2->get_simbolo());
-
-        Move movimento(&jogador1, 1, 1, 3, 3);
-        movimento.aplicar(&tabuleiro);
-
-        CHECK(tabuleiro.consultarPosicao(1, 1) == "");
-        CHECK(tabuleiro.consultarPosicao(3, 3) == "U+2617");
-    }
+TEST_CASE("Move - deslocamento e reversao preservam a identidade da peca") {
+    Board b(8,8); Player j("Isaac Newton",'b');
+    colocar(b,1,1,"U+2617",1);
+    Piece* p=b.consultarPosicao(1,1);
+    Move m(&j,1,1,2,2);
+    m.aplicar(&b);
+    CHECK(b.consultarPosicao(1,1)==nullptr);
+    CHECK(b.consultarPosicao(2,2)==p);
+    m.reverter(&b);
+    CHECK(b.consultarPosicao(1,1)==p);
+    CHECK(b.consultarPosicao(2,2)==nullptr);
+}
+TEST_CASE("Move - captura e reversao restauram ambas as pecas") {
+    Board b(8,8); Player j("Isaac Newton",'b');
+    colocar(b,1,1,"b",1);colocar(b,2,2,"p",2);
+    Piece* a=b.consultarPosicao(1,1);Piece* c=b.consultarPosicao(2,2);
+    Move m(&j,1,1,2,2);
+    m.aplicar(&b);CHECK(b.consultarPosicao(2,2)==a);
+    m.reverter(&b);CHECK(b.consultarPosicao(1,1)==a);CHECK(b.consultarPosicao(2,2)==c);
+}
+TEST_CASE("Move - rejeita argumentos e operacoes fora de ordem") {
+    Board b(4,4);Player j("A",'a');
+    CHECK_THROWS_AS(Move(nullptr,0,0,1,1),std::invalid_argument);
+    CHECK_THROWS_AS(Move(&j,-1,0,1,1),std::out_of_range);
+    CHECK_THROWS_AS(Move(&j,0,0,0,0),std::invalid_argument);
+    Move m(&j,0,0,1,1);
+    CHECK_THROWS_AS(m.aplicar(nullptr),std::invalid_argument);
+    CHECK_THROWS_AS(m.reverter(&b),std::logic_error);
+    CHECK_THROWS_AS(m.aplicar(&b),std::logic_error);
+    colocar(b,0,0,"A");m.aplicar(&b);
+    CHECK_THROWS_AS(m.aplicar(&b),std::logic_error);
+    Board outro(4,4);CHECK_THROWS_AS(m.reverter(&outro),std::logic_error);
+    colocar(b,3,3,"B",2);CHECK_THROWS_AS(m.reverter(&b),std::logic_error);
+    REQUIRE(b.consultarPosicao(1,1)!=nullptr);
+    CHECK(b.consultarPosicao(1,1)->ler_simbolo()=="A");
+}
+TEST_CASE("Move - falhas nao apagam a origem nem o destino") {
+    Board b(4,4);Player j("A",'a');colocar(b,0,0,"A");colocar(b,1,1,"B");
+    Move m(&j,0,0,1,1);CHECK_THROWS_AS(m.aplicar(&b),std::invalid_argument);
+    REQUIRE(b.consultarPosicao(0,0)!=nullptr);REQUIRE(b.consultarPosicao(1,1)!=nullptr);
+    Move fora(&j,0,0,99,99);CHECK_THROWS_AS(fora.aplicar(&b),std::out_of_range);
+    CHECK(b.consultarPosicao(0,0)->ler_simbolo()=="A");
+    CHECK(b.consultarPosicao(1,1)->ler_simbolo()=="B");
 }

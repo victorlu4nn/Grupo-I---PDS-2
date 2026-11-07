@@ -1,79 +1,40 @@
 #include "RuleBook.hpp"
+#include "Validacao.hpp"
 #include <stdexcept>
 
 RuleBook::RuleBook(const std::string& descricao) : descricaoRegras(descricao) {
-    if (descricao.empty()) {
-        throw std::invalid_argument("A descrição das regras não pode ser vazia.");
-    }
+    if (!validacao::textoVisivel(descricao) || descricao.size() > 4096)
+        throw std::invalid_argument("Descricao das regras invalida.");
 }
-
-std::string RuleBook::getDescricaoRegras() const {
-    return descricaoRegras;
+std::string RuleBook::getDescricaoRegras() const { return descricaoRegras; }
+bool RuleBook::validarJogada(Board* b, int ox, int oy, int dx, int dy) const {
+    if (!b) throw std::invalid_argument("Tabuleiro nulo.");
+    return b->validarCoordenadas(ox, oy) && b->validarCoordenadas(dx, dy)
+        && (ox != dx || oy != dy);
 }
-
-bool RuleBook::validarJogada(Board* tabuleiro, int origemX, int origemY, int destinoX, int destinoY) const {
-    if (tabuleiro == nullptr) {
-        throw std::invalid_argument("O ponteiro do tabuleiro não pode ser nulo.");
-    }
-
-    // Coordenadas devem estar dentro dos limites
-    if (!tabuleiro->validarCoordenadas(origemX, origemY) || 
-        !tabuleiro->validarCoordenadas(destinoX, destinoY)) {
-        return false;
-    }
-
-    // Movimento para a mesma posição não é válido
-    if (origemX == destinoX && origemY == destinoY) {
-        return false;
-    }
-
-    return true;
+// Mantem o exemplo legado (tres simbolos iguais numa linha de um 3x3).
+// Nao e uma regra universal. Os tres jogos usam suas proprias condicoes finais.
+static void exigirExemplo3x3(const Board* b) {
+    if (!b) throw std::invalid_argument("Tabuleiro nulo.");
+    if (b->getLinhas() != 3 || b->getColunas() != 3)
+        throw std::logic_error("Use a verificacao de vitoria/empate do jogo especifico.");
 }
-
-bool RuleBook::verificarVitoria(Board* tabuleiro) const {
-    if (tabuleiro == nullptr) {
-        throw std::invalid_argument("O ponteiro do tabuleiro não pode ser nulo.");
+bool RuleBook::verificarVitoria(Board* b) const {
+    exigirExemplo3x3(b);
+    for (int l = 0; l < 3; ++l) {
+        const Piece* a = b->consultarPosicao(l, 0);
+        const Piece* c = b->consultarPosicao(l, 1);
+        const Piece* d = b->consultarPosicao(l, 2);
+        if (a && c && d && a->ler_simbolo() == c->ler_simbolo()
+            && c->ler_simbolo() == d->ler_simbolo()) return true;
     }
-
-    // Exemplo de verificação genérica: verifica se há uma linha de 3 peças iguais
-    for (int i = 0; i < 3; ++i) {
-        if (tabuleiro->validarCoordenadas(i, 0) &&
-            tabuleiro->validarCoordenadas(i, 1) &&
-            tabuleiro->validarCoordenadas(i, 2)) {
-            
-            Piece* p1 = tabuleiro->consultarPosicao(i, 0);
-            Piece* p2 = tabuleiro->consultarPosicao(i, 1);
-            Piece* p3 = tabuleiro->consultarPosicao(i, 2);
-
-            // As posicoes guardam Piece*: compara o simbolo das pecas, nao os ponteiros
-            if (p1 != nullptr && p2 != nullptr && p3 != nullptr &&
-                p1->ler_simbolo() == p2->ler_simbolo() &&
-                p2->ler_simbolo() == p3->ler_simbolo()) {
-                return true;
-            }
-        }
-    }
-
     return false;
 }
-
-bool RuleBook::verificarEmpate(Board* tabuleiro) const {
-    if (tabuleiro == nullptr) {
-        throw std::invalid_argument("O ponteiro do tabuleiro não pode ser nulo.");
-    }
-
-    if (verificarVitoria(tabuleiro)) {
-        return false;
-    }
-
-    // Se todas as posições estiverem preenchidas sem vencedor, configura empate
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            if (tabuleiro->validarCoordenadas(i, j) && tabuleiro->consultarPosicao(i, j) == nullptr) {
-                return false;
-            }
-        }
-    }
-
+bool RuleBook::verificarEmpate(Board* b) const {
+    exigirExemplo3x3(b);
+    if (verificarVitoria(b)) return false;
+    for (int l = 0; l < 3; ++l)
+        for (int c = 0; c < 3; ++c)
+            if (!b->consultarPosicao(l, c)) return false;
     return true;
 }

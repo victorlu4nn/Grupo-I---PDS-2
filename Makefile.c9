@@ -1,0 +1,25 @@
+# Build adicional: preserva o Makefile que ja existe no repositorio.
+# Execute na raiz: make -f Makefile.c9 ou mingw32-make -f Makefile.c9
+CXX ?= g++
+CXXFLAGS ?= -std=c++11 -Wall -Wextra -Wpedantic -g
+CPPFLAGS += -Iinclude -Iinclude/base -Iinclude/games -Itests
+BASE = src/base/Board.cpp src/base/Piece.cpp src/base/Player.cpp \
+       src/base/RuleBook.cpp src/base/Game.cpp src/base/Move.cpp \
+       src/base/GameManager.cpp
+JOGOS = src/games/Connect4.cpp src/games/Damas.cpp src/games/BatalhaNaval.cpp
+CORE = $(BASE) $(JOGOS)
+TESTES = tests/test_main.cpp tests/base/TesteBoard.cpp \
+         tests/base/TestePiece.cpp tests/base/TestePlayer.cpp \
+         tests/base/TesteRuleBook.cpp tests/base/TesteGame.cpp \
+         tests/base/TesteMove.cpp tests/base/TesteGameManager.cpp \
+         tests/games/TesteConnect4.cpp tests/games/TesteDamas.cpp \
+         tests/games/TesteBatalhaNaval.cpp tests/TesteDefensiva.cpp
+HEADERS = $(wildcard include/base/*.hpp include/games/*.hpp)
+.PHONY: all test
+all: jogos_c9.exe testes_c9.exe
+jogos_c9.exe: $(CORE) src/main.cpp $(HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CORE) src/main.cpp -o $@
+testes_c9.exe: $(CORE) $(TESTES) $(HEADERS) include/doctest.h tests/ApoioTestes.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CORE) $(TESTES) -o $@
+test: testes_c9.exe
+	./testes_c9.exe

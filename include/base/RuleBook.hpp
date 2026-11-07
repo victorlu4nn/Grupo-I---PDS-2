@@ -12,7 +12,8 @@
 
 /**
  * @class RuleBook
- * @brief Armazena o manual de regras, valida jogadas e verifica condições de vitória ou empate.
+ * @brief Armazena o manual e valida limites gerais. Vitória/empate abaixo
+ * são apenas o exemplo legado de linhas em 3x3; os jogos usam métodos próprios.
  */
 class RuleBook {
 private:
@@ -43,14 +44,16 @@ public:
     bool validarJogada(Board* tabuleiro, int origemX, int origemY, int destinoX, int destinoY) const;
 
     /**
-     * @brief Verificar se o estado atual do tabuleiro configura vitória.
+     * @brief Exemplo legado: três símbolos iguais numa linha de um tabuleiro 3x3.
+     * @throws std::logic_error Para tabuleiros de outras dimensões.
      * @param tabuleiro Ponteiro para o tabuleiro atual.
      * @return true se houver condição de vitória.
      */
     bool verificarVitoria(Board* tabuleiro) const;
 
     /**
-     * @brief Verificar se o estado da partida configura empate.
+     * @brief Exemplo legado: 3x3 cheio sem uma linha de três símbolos iguais.
+     * @throws std::logic_error Para tabuleiros de outras dimensões.
      * @param tabuleiro Ponteiro para o tabuleiro atual.
      * @return true se houver condição de empate.
      */

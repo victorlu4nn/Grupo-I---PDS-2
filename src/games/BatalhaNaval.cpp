@@ -1,6 +1,9 @@
 #include <cctype>
 #include <cstdlib>
 #include <ctime>
+#include <memory>
+#include <random>
+#include "Validacao.hpp"
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -69,6 +72,16 @@ static bool verifica_navio_afundado(Board* tabuleiro, int jogador, int linha, in
     return true;
 }
 
+BatalhaNaval::BatalhaNaval()
+    : Game("Batalha Naval", std::unique_ptr<Board>(new Board(10, 20)),
+           std::unique_ptr<RuleBook>(new RuleBook(
+               "Ataque usando A1 a J10. Cada jogador possui cinco navios. "
+               "Nao repita ataques. A vez alterna mesmo ao acertar. "
+               "Vence quem afundar toda a frota adversaria."))),
+      quantidade_navios_jogador1(0), quantidade_navios_jogador2(0) {
+    criarJogadores('1', '2');
+}
+
 BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
     : Game("Batalha Naval", tabuleiro, regras),
       quantidade_navios_jogador1(0),
@@ -79,60 +92,45 @@ BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
             "O tabuleiro de Batalha Naval precisa ter ao menos 10 linhas e 20 colunas.");
     }
 
-    // Without players in the list Game::alternarTurno() has nobody to switch to
-    jogadores.push_back(new Player("Jogador 1", '1'));
-    jogadores.push_back(new Player("Jogador 2", '2'));
-
-    // Game starts the turn index at 1, but here the Jogador 1 (index 0) must
-    // always play first, exactly as after Game::reiniciarPartida()
-    indiceJogadorDaVez = 0;
+    criarJogadores('1', '2');
 }
 
-BatalhaNaval::~BatalhaNaval() {
-    for (Player* jogador : jogadores) {
-        delete jogador;
-    }
-    jogadores.clear();
-}
+BatalhaNaval::~BatalhaNaval() = default;
 
 void BatalhaNaval::configurarDisposicaoInicial() {
     organizar_tabuleiro_batalha_naval();
 }
 
 void BatalhaNaval::organizar_tabuleiro_batalha_naval() {
-    // Seeds the random generator only once per program
-    static bool semente_definida = false;
-    if (!semente_definida) {
-        std::srand(static_cast<unsigned>(std::time(nullptr)));
-        semente_definida = true;
-    }
-
-    tabuleiro->limpar();
-    quantidade_navios_jogador1 = 0;
-    quantidade_navios_jogador2 = 0;
-
-    for (int jogador = 1; jogador <= 2; jogador++) {
-        for (int i = 0; i < QUANTIDADE_NAVIOS; i++) {
-            // Tries random positions until the ship fits
+    // Monta em um tabuleiro temporario. Se faltar memoria ou nao houver
+    // posicionamento, a partida anterior continua intacta.
+    Board novo(tabuleiro->getLinhas(), tabuleiro->getColunas());
+    BatalhaNaval preparacao(&novo, regras);
+    static std::mt19937 gerador(std::random_device{}());
+    std::uniform_int_distribution<int> coordenada(0, 9);
+    std::uniform_int_distribution<int> orientacao(0, 1);
+    for (int jogador = 1; jogador <= 2; ++jogador) {
+        for (int tamanho : FROTA) {
             bool posicionado = false;
-
-            for (int tentativa = 0; tentativa < 1000 && !posicionado; tentativa++) {
-                int linha = std::rand() % TAMANHO_MAR;
-                int coluna = std::rand() % TAMANHO_MAR;
-                bool horizontal = (std::rand() % 2 == 0);
-
-                posicionado = posicionar_navio(jogador, linha, coluna, FROTA[i], horizontal);
-            }
-
-            if (!posicionado) {
-                throw std::runtime_error("Nao foi possivel posicionar a frota no tabuleiro.");
-            }
+            for (int tentativa = 0; tentativa < 1000 && !posicionado; ++tentativa)
+                posicionado = preparacao.posicionar_navio(
+                    jogador, coordenada(gerador), coordenada(gerador), tamanho,
+                    orientacao(gerador) != 0);
+            if (!posicionado)
+                throw std::runtime_error("Nao foi possivel posicionar a frota. Tente reiniciar novamente.");
         }
     }
+    estadoPartida = "em_andamento";
+    tabuleiro->trocarConteudo(novo);
+    quantidade_navios_jogador1 = preparacao.quantidade_navios_jogador1;
+    quantidade_navios_jogador2 = preparacao.quantidade_navios_jogador2;
+    indiceJogadorDaVez = 0;
+    ataques_iniciados = false;
 }
 
 bool BatalhaNaval::posicionar_navio(int jogador, int linha, int coluna, int tamanho, bool horizontal) {
-    if ((jogador != 1 && jogador != 2) || tamanho <= 0) {
+    if (ataques_iniciados || FimdeJogo() || (jogador != 1 && jogador != 2) ||
+        tamanho <= 0 || tamanho > TAMANHO_MAR || !dentro_do_mar(linha, coluna)) {
         return false;
     }
 
@@ -163,12 +161,13 @@ bool BatalhaNaval::posicionar_navio(int jogador, int linha, int coluna, int tama
         }
     }
 
-    for (int i = 0; i < tamanho; i++) {
-        int l = linha + passo_linha * i;
-        int c = coluna + passo_coluna * i;
-
-        tabuleiro->atualizarPosicao(l, coluna_no_tabuleiro(jogador, c), new PecaBatalhaNaval("N", jogador));
-    }
+    // Aloca o navio inteiro antes de inserir qualquer segmento.
+    std::vector<std::unique_ptr<Piece>> partes;
+    for (int i = 0; i < tamanho; ++i)
+        partes.emplace_back(new PecaBatalhaNaval("N", jogador));
+    for (int i = 0; i < tamanho; ++i)
+        tabuleiro->inserirPeca(linha + passo_linha * i,
+            coluna_no_tabuleiro(jogador, coluna + passo_coluna * i), std::move(partes[i]));
 
     if (jogador == 1) {
         quantidade_navios_jogador1++;
@@ -179,6 +178,7 @@ bool BatalhaNaval::posicionar_navio(int jogador, int linha, int coluna, int tama
 }
 
 std::vector<int> BatalhaNaval::_lendo_movimento(const std::string acao) const {
+    if (!validacao::comandoValido(acao)) return {};
     const std::string board_columns = "ABCDEFGHIJ";
     std::vector<int> movimento;
 
@@ -215,9 +215,9 @@ std::vector<int> BatalhaNaval::_lendo_movimento(const std::string acao) const {
 }
 
 bool BatalhaNaval::_movimento_valido(int linha, int coluna) const {
-    if (!dentro_do_mar(linha, coluna)) {
-        return false;
-    }
+    if (FimdeJogo() || !dentro_do_mar(linha, coluna) ||
+        quantidade_navios_jogador1 == 0 || quantidade_navios_jogador2 == 0) return false;
+    validarJogadorDaVez();
 
     int alvo = id_oponente(indiceJogadorDaVez + 1);
     Piece* peca = tabuleiro->consultarPosicao(linha, coluna_no_tabuleiro(alvo, coluna));
@@ -235,7 +235,7 @@ bool BatalhaNaval::_movimento_valido(int linha, int coluna) const {
 
 void BatalhaNaval::_executa_movimento(int linha, int coluna) {
     if (!_movimento_valido(linha, coluna)) {
-        return;
+        throw std::invalid_argument("Ataque invalido: confira a coordenada, as frotas e os tiros anteriores.");
     }
 
     int alvo = id_oponente(indiceJogadorDaVez + 1);
@@ -245,9 +245,10 @@ void BatalhaNaval::_executa_movimento(int linha, int coluna) {
 
     // Miss: leave a marker so the same position is not attacked twice
     if (peca == nullptr) {
-        PecaBatalhaNaval* agua = new PecaBatalhaNaval("o", alvo, false);
+        std::unique_ptr<PecaBatalhaNaval> agua(new PecaBatalhaNaval("o", alvo, false));
         agua->atingir();
-        tabuleiro->atualizarPosicao(linha, coluna_tabuleiro, agua);
+        tabuleiro->inserirPeca(linha, coluna_tabuleiro, std::move(agua));
+        ataques_iniciados = true;
 
         std::cout << "Agua!" << std::endl;
         return;
@@ -255,15 +256,17 @@ void BatalhaNaval::_executa_movimento(int linha, int coluna) {
 
     // Hit (_movimento_valido guarantees this is an intact ship part)
     PecaBatalhaNaval* navio = dynamic_cast<PecaBatalhaNaval*>(peca);
+    unsigned& restantes = (alvo == 1) ? quantidade_navios_jogador1 : quantidade_navios_jogador2;
+    if (!navio || restantes == 0) throw std::logic_error("Estado da frota inconsistente.");
     navio->atingir();
+    ataques_iniciados = true;
 
     if (!verifica_navio_afundado(tabuleiro, alvo, linha, coluna)) {
         std::cout << "Acertou um navio!" << std::endl;
         return;
     }
 
-    unsigned& restantes = (alvo == 1) ? quantidade_navios_jogador1 : quantidade_navios_jogador2;
-    restantes--;
+    --restantes;
     std::cout << "Voce afundou um navio! Restam " << restantes << " para o oponente." << std::endl;
 
     if (restantes == 0) {
@@ -292,7 +295,8 @@ bool BatalhaNaval::executarJogada(const std::string acao) {
     _executa_movimento(alvo[0], alvo[1]);
 
     if (FimdeJogo()) {
-        std::cout << "Fim de jogo! " << Vencedor()->getNome() << " venceu!" << std::endl;
+        if (const Player* vencedor = Vencedor())
+            std::cout << "Fim de jogo! " << vencedor->getNome() << " venceu!" << std::endl;
     } else {
         alternarTurno();
     }
@@ -329,7 +333,10 @@ Player* BatalhaNaval::Vencedor() const {
 }
 
 PecaBatalhaNaval::PecaBatalhaNaval(std::string simb, int id_jogador, bool navio)
-    : Piece(simb, id_jogador), eh_navio(navio), foi_atingido(false) {}
+    : Piece(simb, id_jogador), eh_navio(navio), foi_atingido(false) {
+    if (id_jogador != 1 && id_jogador != 2)
+        throw std::invalid_argument("Jogador da Batalha Naval deve ser 1 ou 2.");
+}
 
 PecaBatalhaNaval::~PecaBatalhaNaval() {}
 
@@ -349,4 +356,21 @@ void PecaBatalhaNaval::atingir() {
 // Pieces of Batalha Naval never move after being placed
 bool PecaBatalhaNaval::movimento_valido(int, int, int, int, const Board&) const {
     return false;
+}
+void BatalhaNaval::exibir(std::ostream& saida) const {
+    validarJogadorDaVez();
+    const int jogador = indiceJogadorDaVez + 1;
+    saida << "\nBatalha Naval | Vez de " << jogadores[indiceJogadorDaVez]->getNome()
+          << "\nSeus ataques (navios adversarios intactos ficam ocultos):\n  A B C D E F G H I J\n";
+    for (int l = 0; l < TAMANHO_MAR; ++l) {
+        saida << l + 1 << (l == 9 ? " " : "  ");
+        for (int c = 0; c < TAMANHO_MAR; ++c) {
+            const auto* p = dynamic_cast<const PecaBatalhaNaval*>(
+                tabuleiro->consultarPosicao(l, coluna_no_tabuleiro(id_oponente(jogador), c)));
+            saida << (!p || !p->get_foi_atingido() ? '.' : (p->get_eh_navio() ? 'X' : 'o')) << ' ';
+        }
+        saida << '\n';
+    }
+    saida << "Navios restantes: jogador 1 = " << quantidade_navios_jogador1
+          << ", jogador 2 = " << quantidade_navios_jogador2 << '\n';
 }

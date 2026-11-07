@@ -1,68 +1,39 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
-
+#include <cstdint>
+#include <memory>
 #include <vector>
-#include <string>
 #include "Piece.hpp"
 
-/**
- * @file Board.hpp
- * @brief Definição da classe Board para manipulação da matriz do tabuleiro.
- */
-
-/**
- * @class Board
- * @brief Controla as dimensões N x M, alocação dinâmica e posições das células.
- */
+// Board e dono das pecas inseridas com sucesso. Ponteiros consultados sao
+// emprestados: nao devem ser deletados pelo chamador nem sobreviver ao tabuleiro.
 class Board {
 protected:
-    const int linhas; ///< Número de linhas do tabuleiro (N).
-    const int colunas; ///< Número de colunas do tabuleiro (M).
-    std::vector<std::vector<Piece*>> celulas; ///< Alocação da grade de células.
-
+    const int linhas;
+    const int colunas;
+    std::vector<std::vector<Piece*>> celulas;
+private:
+    std::uint64_t revisao = 0;
+    void exigirCoordenadas(int x, int y) const;
 public:
-    /**
-     * @brief Constrói o tabuleiro validando dimensões (lança exceção se <= 0).
-     * @param n Número de linhas.
-     * @param m Número de colunas.
-     */
     Board(int n, int m);
-
-    /**
-     * @brief Verifica se coordenadas (x, y) estão dentro dos limites válidos.
-     * @param x Coordenada da linha.
-     * @param y Coordenada da coluna.
-     * @return true se estiver dentro dos limites, false caso contrário.
-     */
+    virtual ~Board();
+    Board(const Board&) = delete;
+    Board& operator=(const Board&) = delete;
     virtual bool validarCoordenadas(int x, int y) const;
-
-    /**
-     * @brief Consulta a peça ou elemento presente em uma coordenada.
-     * @param x Coordenada da linha.
-     * @param y Coordenada da coluna.
-     * @return std::string Representação da peça na posição.
-     */
     Piece* consultarPosicao(int x, int y) const;
-
-    /**
-     * @brief Insere ou atualiza uma peça em uma posição específica.
-     * @param x Coordenada da linha.
-     * @param y Coordenada da coluna.
-     * @param peca Representação da peça.
-     */
+    // Nao sobrescreve uma casa ocupada. Em falha, peca continua com o chamador.
     void atualizarPosicao(int x, int y, Piece* peca);
-
-    /**
-     * @brief Remove peças de posições determinadas do tabuleiro.
-     * @param x Coordenada da linha.
-     * @param y Coordenada da coluna.
-     */
+    // Versao recomendada: mantem a memoria protegida mesmo se houver excecao.
+    void inserirPeca(int x, int y, std::unique_ptr<Piece> peca);
+    // Retira sem destruir e transfere a propriedade ao chamador.
+    std::unique_ptr<Piece> retirarPeca(int x, int y);
     void removerPeca(int x, int y);
-
-    /**
-     * @brief Restaura a matriz para a configuração inicial limpa.
-     */
-    void limpar();
+    void limpar() noexcept;
+    int getLinhas() const noexcept { return linhas; }
+    int getColunas() const noexcept { return colunas; }
+    std::uint64_t getRevisao() const noexcept { return revisao; }
+    // Permite preparar um reinicio inteiro antes de substituir a partida.
+    void trocarConteudo(Board& outro);
 };
-
 #endif

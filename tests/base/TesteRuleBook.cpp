@@ -1,7 +1,7 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "RuleBook.hpp"
 #include "Board.hpp"
+#include "ApoioTestes.hpp"
 #include <stdexcept>
 
 TEST_CASE("RuleBook - Construtor e Descrição das Regras") {
@@ -33,7 +33,7 @@ TEST_CASE("RuleBook - Validação de Jogadas") {
     }
 
     SUBCASE("Jogada válida em coordenadas dentro do limite") {
-        b.atualizarPosicao(0, 0, "Peao");
+        colocar(b, 0, 0, "Peao");
         CHECK(rb.validarJogada(&b, 0, 0, 0, 1) == true);
     }
 }
@@ -53,18 +53,18 @@ TEST_CASE("RuleBook - Verificação de Condições Finais (Vitória e Empate)") 
     }
 
     SUBCASE("Condição de vitória por preenchimento de linha (exemplo de lógica base)") {
-        b.atualizarPosicao(0, 0, "X");
-        b.atualizarPosicao(0, 1, "X");
-        b.atualizarPosicao(0, 2, "X");
+        colocar(b, 0, 0, "X");
+        colocar(b, 0, 1, "X");
+        colocar(b, 0, 2, "X");
 
         CHECK(rb.verificarVitoria(&b) == true);
         CHECK(rb.verificarEmpate(&b) == false);
     }
 
     SUBCASE("Condição de empate por tabuleiro cheio sem vencedor") {
-        b.atualizarPosicao(0, 0, "X"); b.atualizarPosicao(0, 1, "O"); b.atualizarPosicao(0, 2, "X");
-        b.atualizarPosicao(1, 0, "X"); b.atualizarPosicao(1, 1, "O"); b.atualizarPosicao(1, 2, "O");
-        b.atualizarPosicao(2, 0, "O"); b.atualizarPosicao(2, 1, "X"); b.atualizarPosicao(2, 2, "X");
+        colocar(b, 0, 0, "X"); colocar(b, 0, 1, "O"); colocar(b, 0, 2, "X");
+        colocar(b, 1, 0, "X"); colocar(b, 1, 1, "O"); colocar(b, 1, 2, "O");
+        colocar(b, 2, 0, "O"); colocar(b, 2, 1, "X"); colocar(b, 2, 2, "X");
 
         CHECK(rb.verificarVitoria(&b) == false);
         CHECK(rb.verificarEmpate(&b) == true);

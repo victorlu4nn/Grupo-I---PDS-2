@@ -1,7 +1,7 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "Game.hpp"
 #include "Board.hpp"
+#include "ApoioTestes.hpp"
 #include "Player.hpp"
 #include "RuleBook.hpp"
 #include <stdexcept>
@@ -15,11 +15,11 @@ public:
     void configurarDisposicaoInicial() override {
         if (tabuleiro) {
             tabuleiro->limpar();
-            tabuleiro->atualizarPosicao(0, 0, "PecaInicial");
+            colocar(*tabuleiro, 0, 0, "PecaInicial");
         }
     }
     bool executarJogada(const std::string acao) {
-        if (acao == "jogada") {
+        if (estadoPartida == "em_andamento" && acao == "jogada") {
             return true;
         }
         return false;
@@ -117,7 +117,7 @@ TEST_CASE("Game - Execução de Jogadas") {
 
     SUBCASE("Executar jogada válida") {
         // Supondo coordenadas válidas dentro dos limites do tabuleiro
-        CHECK(game.executarJogada("a0 para a1") == true);
+        CHECK(game.executarJogada("jogada") == true);
     }
 
     SUBCASE("Executar jogada inválida por coordenadas fora dos limites") {
@@ -151,7 +151,8 @@ TEST_CASE("Game - Reinício de Partida") {
 
     CHECK(game.getEstadoPartida() == "em_andamento");
     CHECK(game.getIndiceJogadorDaVez() == 0);
-    CHECK(b.consultarPosicao(0, 0) == "PecaInicial");
+    REQUIRE(b.consultarPosicao(0, 0) != nullptr);
+    CHECK(b.consultarPosicao(0, 0)->ler_simbolo() == "PecaInicial");
 }
 
 TEST_CASE("Game - Finalização de Partida") {
