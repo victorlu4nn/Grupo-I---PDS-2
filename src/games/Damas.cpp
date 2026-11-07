@@ -146,10 +146,14 @@ std::vector<std::string> Damas::_lendo_movimento(const std::string acao) const {
 
     if (tokens.size() < 2) {
         if (tokens[0] == "empate") {
-
+            pattern_movement = {"empate"};
+            return pattern_movement;
+        } else if (tokens[0] == "abandonar") {
+            pattern_movement = {"abandonar"};
+            return pattern_movement;
+        } else {
+            std::cerr << "Erro. Movimento precisa de uma posicao inicial e final." << std::endl;
         }
-
-        std::cerr << "Erro. Movimento precisa de uma posicao inicial e final." << std::endl;
     }
 
     for (std::string single_command: tokens){
@@ -192,6 +196,18 @@ bool Damas::executarJogada(const std::string acao) {
     std::vector<std::string> standardized_move = _lendo_movimento(acao);
     std::vector<PecaDamas*> pecas_capturadas;
     std::vector<int> posicoes_capturadas;
+    bool lance_decisivo = false;
+
+    if (standardized_move[0] == "empate") {
+        Vencedor(-1);
+        estadoPartida = "finalizada";
+        return true;
+    } else if (standardized_move[0] == "abandonar") {
+        int id_ganhador = (indiceJogadorDaVez + 1) % 2;
+        Vencedor(id_ganhador);
+        estadoPartida = "finalizada";
+        return true;
+    }
 
     std::string posicao_inicial = standardized_move[0];
     int initial_x = posicao_inicial[0] - '0';
@@ -242,6 +258,9 @@ bool Damas::executarJogada(const std::string acao) {
                 int x_peca = posicoes_capturadas[pecas_idx];
                 pecas_idx++;
                 int y_peca = posicoes_capturadas[pecas_idx];
+
+                mapa_pecas_no_tabuleiro.at(peca->ler_simbolo()) -= 1;
+
                 tabuleiro->removerPeca(x_peca, y_peca);
 
                 if (peca_damas_de_movimento->ler_id_jogador() == 0) {
@@ -270,6 +289,9 @@ bool Damas::executarJogada(const std::string acao) {
             if (_captura_valida(*move, peca_damas_de_movimento, pecas_capturadas, posicoes_capturadas)) {
                 int x_peca = posicoes_capturadas[0];
                 int y_peca = posicoes_capturadas[1];
+
+                mapa_pecas_no_tabuleiro.at(pecas_capturadas[0]->ler_simbolo()) -= 1;
+                
                 tabuleiro->removerPeca(x_peca, y_peca);
 
                 if (peca_damas_de_movimento->ler_id_jogador() == 0) {
@@ -394,9 +416,36 @@ bool Damas::_captura_valida(
     return true;
 }
 
+void Damas::final_tabuleiro(PecaDamas* peca, int y_final) {
+    if ((indiceJogadorDaVez == 0 && y_final == 7) || 
+        (indiceJogadorDaVez == 1 && y_final == 0))
+    {
+        peca->promocao_dama();       
+        if (indiceJogadorDaVez == 0) {
+            mapa_pecas_no_tabuleiro.at("\u26C2") -= 1;
+            mapa_pecas_no_tabuleiro.at("\u26C3") += 1;
+        } else {
+            mapa_pecas_no_tabuleiro.at("\u26C0") -= 1;
+            mapa_pecas_no_tabuleiro.at("\u26C1") += 1;
+    } 
+    }
+}
 
-bool Damas::FimdeJogo() const {
 
+bool Damas::FimdeJogo(int id_jogador) const {
+    if (quantidade_pecas_brancas == 0 || quantidade_pecas_pretas == 0 || !_verifica_se_ha_movimento(id_jogador)) {
+        return true;
+    }
+    return false;
+}
+
+
+Player* Damas::Vencedor(int id_ganhador) const {
+    if (id_ganhador == -1) 
+        return nullptr;
+    
+    Player* ganhador = jogadores[id_ganhador];
+    return ganhador;
 }
 
 
@@ -408,6 +457,8 @@ bool Damas::FimdeJogo() const {
 //
 
 PecaDamas::PecaDamas(std::string simb, int id): Piece(simb, id) {};
+
+PecaDamas::~PecaDamas() {};
 
 bool PecaDamas::get_eh_damas() const {
     return eh_dama;
@@ -427,7 +478,7 @@ void PecaDamas::promocao_dama() {
 
 Movimento_Valido* PecaDamas::_movimento_valido(
     std::vector<std::string> movimento_padronizado,
-    Board* tabuleiro_damas
+    const Board* tabuleiro_damas
 ) const {
     Movimento_Valido* valid = new Movimento_Valido;
 
@@ -497,4 +548,24 @@ Movimento_Valido* PecaDamas::_movimento_valido(
     }
 
     return valid;
+}
+
+bool PecaDamas::movimento_valido(
+    int x_orig,
+    int y_orig,
+    int x_dest,
+    int y_dest,
+    const Board& board_status
+) const {
+    std::vector<std::string> movimento_padrozinado;
+    movimento_padrozinado.push_back(std::to_string(x_orig));
+    movimento_padrozinado.push_back(std::to_string(y_orig));
+    movimento_padrozinado.push_back(std::to_string(x_dest));
+    movimento_padrozinado.push_back(std::to_string(y_dest));
+
+    Movimento_Valido* movimento_valido = _movimento_valido(movimento_padrozinado, &board_status);
+    if (movimento_valido->eh_valido)
+        return true;
+    else 
+        return false;
 }
