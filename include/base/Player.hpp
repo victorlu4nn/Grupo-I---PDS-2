@@ -15,7 +15,7 @@
 class Player {
 private:
     std::string nome; ///< Nome ou apelido de identificação do participante.
-    char simboloPeca; ///< Símbolo ou cor atribuído às suas peças.
+    std::string simboloPeca; ///< Símbolo ou cor atribuído às suas peças.
     int pontuacao; ///< Histórico de pontuação ou partidas vencidas.
 
 public:
@@ -24,7 +24,7 @@ public:
      * @param nome Nome do jogador.
      * @param simbolo Símbolo da peça.
      */
-    Player(const std::string& nome, char simbolo);
+    Player(const std::string& nome, std::string simbolo);
 
     /**
      * @brief Retorna o nome do jogador.
@@ -34,9 +34,9 @@ public:
 
     /**
      * @brief Retorna o símbolo associado às peças do jogador.
-     * @return char Símbolo da peça.
+     * @return std::string Símbolo da peça.
      */
-    char getSimboloPeca() const;
+    std::string getSimboloPeca() const;
 
     /**
      * @brief Retorna a pontuação atual do jogador.

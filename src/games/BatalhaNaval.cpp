@@ -79,7 +79,7 @@ BatalhaNaval::BatalhaNaval()
                "Nao repita ataques. A vez alterna mesmo ao acertar. "
                "Vence quem afundar toda a frota adversaria."))),
       quantidade_navios_jogador1(0), quantidade_navios_jogador2(0) {
-    criarJogadores('1', '2');
+    criarJogadores("1", "2");
 }
 
 BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
@@ -92,7 +92,7 @@ BatalhaNaval::BatalhaNaval(Board* tabuleiro, RuleBook* regras)
             "O tabuleiro de Batalha Naval precisa ter ao menos 10 linhas e 20 colunas.");
     }
 
-    criarJogadores('1', '2');
+    criarJogadores("1", "2");
 }
 
 BatalhaNaval::~BatalhaNaval() = default;

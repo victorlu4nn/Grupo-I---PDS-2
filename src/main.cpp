@@ -5,19 +5,34 @@
 #include <sstream>
 #include <stdexcept>
 
+// initializing main function
 int main() {
+    // trying to initiate program
     try {
+        // creating game manager and adding developed games
         GameManager gerenciador;
         gerenciador.registrarJogo("Connect4");
         gerenciador.registrarJogo("Damas");
         gerenciador.registrarJogo("Batalha Naval");
+
+        // while there was not a command for exiting the program
         while(!gerenciador.solicitouSaida()) {
-            const auto jogos=gerenciador.listarJogos();
+            // getting a string vector for the registered games
+            const std::vector<std::string> jogos = gerenciador.listarJogos();
+
+            unsigned short idx = 1;
+             
+            // exhibiting games
             std::cout<<"\n=== Jogos de tabuleiro ===\n0 - Sair\n";
-            for(std::size_t i=0;i<jogos.size();++i)std::cout<<i+1<<" - "<<jogos[i]<<'\n';
+            for(std::string gameName: jogos) {
+                std::cout<< idx <<" - "<<gameName<<'\n';
+                idx++;
+            }
+
             std::cout<<"Escolha: "<<std::flush;
             std::string texto;
-            const auto leitura=validacao::lerLinha(std::cin,texto);
+
+            const auto leitura = validacao::lerLinha(std::cin,texto);
             if(leitura==validacao::Leitura::FIM) break;
             if(leitura==validacao::Leitura::LONGA){std::cout<<"Entrada muito longa.\n";continue;}
             std::istringstream entrada(texto);

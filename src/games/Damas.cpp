@@ -25,8 +25,8 @@ Damas::Damas(): Game(
         "Empate apos 40 lances so com damas sem captura ou 5 lances em final reduzido."
     ))
 ) {
-    Player* jogador1 = new Player("Jogador 1", 'b');
-    Player* jogador2 = new Player("Jogador 2", 'p');
+    Player* jogador1 = new Player("Jogador 1", "b");
+    Player* jogador2 = new Player("Jogador 2", "p");
 
     jogadores.push_back(jogador1);
     jogadores.push_back(jogador2);
@@ -41,8 +41,8 @@ Damas::Damas(Board* damasboard, RuleBook* damasrulebook): Game("Damas", damasboa
     if (damasboard->getLinhas() != 8 || damasboard->getColunas() != 8)
         throw std::invalid_argument("Damas exige um tabuleiro 8x8.");
 
-    Player* jogador1 = new Player("Jogador 1", 'b');
-    Player* jogador2 = new Player("Jogador 2", 'p');
+    Player* jogador1 = new Player("Jogador 1", "b");
+    Player* jogador2 = new Player("Jogador 2", "p");
 
     jogadores.push_back(jogador1);
     jogadores.push_back(jogador2);

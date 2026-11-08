@@ -18,7 +18,7 @@ protected:
     std::string estadoPartida;
     // Construtor para jogos que criam seus proprios recursos, como Connect4.
     Game(const std::string& nome, std::unique_ptr<Board> b, std::unique_ptr<RuleBook> r);
-    void criarJogadores(char simbolo1, char simbolo2);
+    void criarJogadores(std::string simbolo1, std::string simbolo2);
     void validarJogadorDaVez() const;
 private:
     std::unique_ptr<Board> tabuleiroProprio;

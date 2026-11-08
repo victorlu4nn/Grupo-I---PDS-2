@@ -13,7 +13,7 @@ Connect4::Connect4()
                         "vertical ou diagonal. Tabuleiro cheio sem vencedor "
                         "significa empate."))),
       quantidade_pecas_jogador1(0), quantidade_pecas_jogador2(0) {
-    criarJogadores('R', 'A');
+    criarJogadores("\u2B24", "\u25EF");
     configurarDisposicaoInicial();
 }
 
@@ -51,7 +51,7 @@ bool Connect4::soltarPeca(int coluna) {
     validarJogadorDaVez();
     const bool primeiro = indiceJogadorDaVez == 0;
     tabuleiro->inserirPeca(linha, coluna,
-        std::unique_ptr<Piece>(new PecaConnect4(primeiro ? "R" : "A", primeiro ? 1 : 2,
+        std::unique_ptr<Piece>(new PecaConnect4(primeiro ? "\u2B24" : "\u25EF", primeiro ? 1 : 2,
                         primeiro ? EquipeConnect4::VERMELHO
                                  : EquipeConnect4::AMARELO)));
     if (primeiro) ++quantidade_pecas_jogador1;
@@ -130,7 +130,6 @@ PecaConnect4::PecaConnect4(std::string simbolo, int id_jogador,
 PecaConnect4::~PecaConnect4() = default;
 
 bool PecaConnect4::movimento_valido(int, int, int, int, const Board&) const {
-   
     return false;
 }
 

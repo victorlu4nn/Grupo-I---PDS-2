@@ -4,13 +4,10 @@
 #include <limits>
 #include "Validacao.hpp"
 
-Player::Player(const std::string& nome, char simbolo)
+Player::Player(const std::string& nome, std::string simbolo)
     : nome(nome), simboloPeca(simbolo), pontuacao(0) {
     if (!validacao::textoVisivel(nome) || nome.size() > 80) {
         throw std::invalid_argument("O nome do jogador não pode ser vazio.");
-    }
-    if (!std::isgraph(static_cast<unsigned char>(simbolo))) {
-        throw std::invalid_argument("O símbolo da peça deve ser um caractere visível e válido.");
     }
 }
 
@@ -18,7 +15,7 @@ std::string Player::getNome() const {
     return nome;
 }
 
-char Player::getSimboloPeca() const {
+std::string Player::getSimboloPeca() const {
     return simboloPeca;
 }
 
