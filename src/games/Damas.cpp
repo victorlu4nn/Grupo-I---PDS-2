@@ -154,11 +154,11 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     bool eh_par = true;
     for (int x = 0; x <= 7; x++) {
         if (eh_par) {
-            damasboard->atualizarPosicao(x, 0, new PecaDamas("\u26C2", 0));
-            damasboard->atualizarPosicao(x, 2, new PecaDamas("\u26C2", 0));
+            damasboard->atualizarPosicao(x, 0, new PecaDamas("\u26C0", 0));
+            damasboard->atualizarPosicao(x, 2, new PecaDamas("\u26C0", 0));
             quantidade_pecas_brancas += 2;
         } else {
-            damasboard->atualizarPosicao(x, 1, new PecaDamas("\u26C2", 0));
+            damasboard->atualizarPosicao(x, 1, new PecaDamas("\u26C0", 0));
             quantidade_pecas_brancas++;
         }
         eh_par = !eh_par;
@@ -167,11 +167,11 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     for (int x = 0; x <= 7; x++) {
         eh_par = !eh_par;    
         if (eh_par) {
-            damasboard->atualizarPosicao(x, 5, new PecaDamas("\u26C0", 1));
-            damasboard->atualizarPosicao(x, 7, new PecaDamas("\u26C0", 1));
+            damasboard->atualizarPosicao(x, 5, new PecaDamas("\u26C2", 1));
+            damasboard->atualizarPosicao(x, 7, new PecaDamas("\u26C2", 1));
             quantidade_pecas_pretas += 2;
         } else {
-            damasboard->atualizarPosicao(x, 6, new PecaDamas("\u26C0", 1));
+            damasboard->atualizarPosicao(x, 6, new PecaDamas("\u26C2", 1));
             quantidade_pecas_pretas++;
         }
     }
@@ -697,11 +697,11 @@ void Damas::final_tabuleiro(PecaDamas* peca, int y_final) {
     {
         peca->promocao_dama();       
         if (indiceJogadorDaVez == 0) {
-            mapa_pecas_no_tabuleiro.at("\u26C2") -= 1;
-            mapa_pecas_no_tabuleiro.at("\u26C3") += 1;
-        } else {
             mapa_pecas_no_tabuleiro.at("\u26C0") -= 1;
             mapa_pecas_no_tabuleiro.at("\u26C1") += 1;
+        } else {
+            mapa_pecas_no_tabuleiro.at("\u26C2") -= 1;
+            mapa_pecas_no_tabuleiro.at("\u26C3") += 1;
         } 
     }
 }
@@ -724,7 +724,7 @@ Player* Damas::Vencedor(int id_ganhador) const {
 }
 
 void Damas::exibir(std::ostream& saida) const {
-    saida << "\nDamas (brancas: \u26C2 dama \u26C3 | pretas: \u26C0 dama \u26C1)\n\n";
+    saida << "\nDamas (brancas: \u26C2  dama \u26C3  | pretas: \u26C0  dama \u26C1 )\n\n";
 
     // Line 8 on top and line 1 on the bottom
     for (int y = 7; y >= 0; y--) {
@@ -733,15 +733,15 @@ void Damas::exibir(std::ostream& saida) const {
             Piece* peca = tabuleiro->consultarPosicao(x, y);
             // Pieces only stay on dark squares (x + y even)
             if (peca != nullptr)
-                saida << peca->ler_simbolo() << ' ';
+                saida << peca->ler_simbolo() << "  ";
             else if ((x + y) % 2 == 0)
-                saida << "\u25A0 ";
+                saida << "\u25A0  ";
             else
-                saida << "\u25A1 ";
+                saida << "\u25A1  ";
         }
         saida << '\n';
     }
-    saida << "\n   a b c d e f g h\n";
+    saida << "\n   a  b  c  d  e  f  g  h\n";
 
     if (estadoPartida == "finalizada") {
         Player* ganhador = Vencedor(id_vencedor);
@@ -777,9 +777,9 @@ bool PecaDamas::get_eh_damas() const {
 
 void PecaDamas::atualizar_simbolo() {
     if (id_jogador == 0)
-        simbolo = "\u26C3";
-    else 
         simbolo = "\u26C1";
+    else 
+        simbolo = "\u26C3";
 }
 
 void PecaDamas::promocao_dama() {
