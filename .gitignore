@@ -1,2 +1,5 @@
 build/*
 !build/.gitkeep
+bin/
+ARQUIVOS_C9.txt
+*.exe
