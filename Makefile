@@ -4,20 +4,19 @@ CXX_FLAGS := -Wall -Wextra -std=c++17 -ggdb
 BIN		:= bin
 SRC		:= src
 INCLUDE	:= include
-LIB		:= lib
 
-LIBRARIES	:=
 EXECUTABLE	:= main
 
+SOURCES := $(wildcard $(SRC)/*.cpp $(SRC)/base/*.cpp $(SRC)/games/*.cpp)
 
 all: $(BIN)/$(EXECUTABLE)
 
-run: clean all
-	clear
+run: all
 	./$(BIN)/$(EXECUTABLE)
 
-$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp
-	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -L$(LIB) $^ -o $@ $(LIBRARIES)
+$(BIN)/$(EXECUTABLE): $(SOURCES)
+	-mkdir $(BIN)
+	$(CXX) $(CXX_FLAGS) -I$(INCLUDE)/base -I$(INCLUDE)/games $^ -o $@
 
 clean:
 	-rm $(BIN)/*
