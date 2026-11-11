@@ -5,8 +5,17 @@
 #include <sstream>
 #include <stdexcept>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // initializing main function
 int main() {
+#ifdef _WIN32
+    // Use UTF-8 in the Windows console so the board symbols appear correctly
+    SetConsoleOutputCP(65001);
+#endif
+
     // trying to initiate program
     try {
         // creating game manager and adding developed games
