@@ -9,6 +9,9 @@ Player::Player(const std::string& nome, std::string simbolo)
     if (!validacao::textoVisivel(nome) || nome.size() > 80) {
         throw std::invalid_argument("O nome do jogador não pode ser vazio.");
     }
+    if (!validacao::textoVisivel(simbolo) || simbolo.size() > 32) {
+        throw std::invalid_argument("O símbolo da peça do jogador não pode ser vazio nem conter caracteres de controle.");
+    }
 }
 
 std::string Player::getNome() const {
