@@ -67,9 +67,9 @@ TEST_CASE("Game - Alternância de Turnos") {
     RuleBook r("regras: ...");
     TestGame game("Damas", &b, &r);
 
-    Player p1("Jogador 1", 'x');
-    Player p2("Jogador 2", 'y');
-    Player p3("Jogador 3", 'z');
+    Player p1("Jogador 1", "x");
+    Player p2("Jogador 2", "y");
+    Player p3("Jogador 3", "z");
 
     SUBCASE("Alternar sem jogadores não altera o índice ou não causa erro") {
         CHECK(game.getIndiceJogadorDaVez() == 0);
@@ -110,8 +110,8 @@ TEST_CASE("Game - Execução de Jogadas") {
     RuleBook r("regras: ...");
     TestGame game("Damas", &b, &r);
 
-    Player p1("Brancas", 'x');
-    Player p2("Pretas", 'o');
+    Player p1("Brancas", "x");
+    Player p2("Pretas", "o");
     game.adicionarJogador(&p1);
     game.adicionarJogador(&p2);
 
@@ -137,8 +137,8 @@ TEST_CASE("Game - Reinício de Partida") {
     RuleBook r("regras : ...");
     TestGame game("Damas", &b, &r);
 
-    Player p1("Brancas", 'x');
-    Player p2("Pretas", 'o');
+    Player p1("Brancas", "x");
+    Player p2("Pretas", "o");
     game.adicionarJogador(&p1);
     game.adicionarJogador(&p2);
 
@@ -160,8 +160,8 @@ TEST_CASE("Game - Finalização de Partida") {
     RuleBook r("regras: ...");
     TestGame game("Xadrez", &b, &r);
 
-    Player p1("Jogador A", 'x');
-    Player p2("Jogador B", 'o'); 
+    Player p1("Jogador A", "x");
+    Player p2("Jogador B", "o"); 
     game.adicionarJogador(&p1);
     game.adicionarJogador(&p2);
 
@@ -175,5 +175,3 @@ TEST_CASE("Game - Finalização de Partida") {
         CHECK(game.getEstadoPartida() == "finalizada");
     }
 }
-
-
