@@ -138,8 +138,6 @@ EquipeConnect4 PecaConnect4::getEquipe() const { return equipe; }
 void Connect4::exibir(std::ostream& saida) const {
     Game::exibir(saida);
     saida << "0 1 2 3 4 5 6 <- colunas\n";
-    if (FimdeJogo()) {
-        const Player* vencedor = Vencedor();
-        saida << (vencedor ? vencedor->getNome() + " venceu!" : "Partida encerrada sem vencedor.") << '\n';
-    }
+    if (estadoPartida == "finalizada")
+        exibirResultado(saida);
 }

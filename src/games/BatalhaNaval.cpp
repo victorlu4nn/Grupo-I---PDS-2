@@ -294,10 +294,8 @@ bool BatalhaNaval::executarJogada(const std::string acao) {
 
     _executa_movimento(alvo[0], alvo[1]);
 
-    if (FimdeJogo()) {
-        if (const Player* vencedor = Vencedor())
-            std::cout << "Fim de jogo! " << vencedor->getNome() << " venceu!" << std::endl;
-    } else {
+    // When the game ends the winner is shown by exibir
+    if (!FimdeJogo()) {
         alternarTurno();
     }
     return true;
@@ -373,4 +371,6 @@ void BatalhaNaval::exibir(std::ostream& saida) const {
     }
     saida << "Navios restantes: jogador 1 = " << quantidade_navios_jogador1
           << ", jogador 2 = " << quantidade_navios_jogador2 << '\n';
+    if (estadoPartida == "finalizada")
+        exibirResultado(saida);
 }

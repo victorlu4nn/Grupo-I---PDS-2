@@ -30,9 +30,6 @@ class Damas: public Game {
         unsigned short contagem_finais_reduzidos = 0;
         std::map<std::string, unsigned short> mapa_pecas_no_tabuleiro;
 
-        // Winner id when the game ends (-1 = draw or no winner yet)
-        int id_vencedor = -1;
-
         // We also have to consider a draw position. In this case, we can compute 
         // some scenarios. We will be working with three of them:
         // 1. 40 moves with Dama, without capture or normal piece move

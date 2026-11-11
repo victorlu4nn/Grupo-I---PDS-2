@@ -108,7 +108,7 @@ TEST_CASE("C9 - Damas valida toda a captura antes de modificar"){
     REQUIRE(j.executarJogada("a3 para c5 para e7"));
     CHECK(em(b,"b4")==nullptr);CHECK(em(b,"d6")==nullptr);
     CHECK(j.getEstado()=="finalizada");CHECK(j.FimdeJogo(1));
-    CHECK(j.tela().find("Jogador 1 venceu!")!=std::string::npos);
+    CHECK(j.tela().find("JOGADOR 1 VENCEU!")!=std::string::npos);
     CHECK_FALSE(j.executarJogada("e7 para f8"));
 }
 TEST_CASE("C9 - Damas permite captura para tras e pecas capturadas bloqueiam"){
@@ -259,13 +259,13 @@ TEST_CASE("C9 - Damas dama captura a distancia") {
     dama(b,"a1",0,true);dama(b,"d4",1);
     REQUIRE(j.executarJogada("a1 para f6"));CHECK(em(b,"d4")==nullptr);
     CHECK(j.FimdeJogo(1));CHECK(j.getEstado()=="finalizada");
-    CHECK(j.tela().find("Jogador 1 venceu!")!=std::string::npos);
+    CHECK(j.tela().find("JOGADOR 1 VENCEU!")!=std::string::npos);
 }
 TEST_CASE("C9 - Damas encerra por bloqueio do adversario") {
     DamasInspecao j;auto& b=j.board();b.limpar();
     dama(b,"a3",0);dama(b,"g1",1); // preta na ultima linha sem promocao, estado de teste
     REQUIRE(j.executarJogada("a3 para b4"));CHECK(j.FimdeJogo(1));CHECK(j.getEstado()=="finalizada");
-    CHECK(j.tela().find("Jogador 1 venceu!")!=std::string::npos);
+    CHECK(j.tela().find("JOGADOR 1 VENCEU!")!=std::string::npos);
 }
 TEST_CASE("C9 - terminal sair programa e EOF na confirmacao") {
     for(const auto* texto:{"sair programa\ns\n","sair partida\n"}) {

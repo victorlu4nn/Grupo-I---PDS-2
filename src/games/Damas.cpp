@@ -148,7 +148,7 @@ void Damas::organizar_tabuleiro_damas(Board* damasboard) {
     quantidade_pecas_pretas = 0;
     contagem_lances_dama = 0;
     contagem_finais_reduzidos = 0;
-    id_vencedor = -1;
+    vencedorPartida = nullptr;
 
     // Configure white pieces
     bool eh_par = true;
@@ -202,17 +202,10 @@ std::vector<std::string> Damas::_lendo_movimento(const std::string acao) const {
         return {};
     }
 
+    // "empate" and "abandonar" are read by Game::lerComando
     if (tokens.size() < 2) {
-        if (tokens[0] == "empate") {
-            pattern_movement = {"empate"};
-            return pattern_movement;
-        } else if (tokens[0] == "abandonar") {
-            pattern_movement = {"abandonar"};
-            return pattern_movement;
-        } else {
-            std::cerr << "Erro. Movimento precisa de uma posicao inicial e final." << std::endl;
-            return {};
-        }
+        std::cerr << "Erro. Movimento precisa de uma posicao inicial e final." << std::endl;
+        return {};
     }
 
     // "para" is optional, but it can only be between two positions
@@ -368,16 +361,6 @@ bool Damas::executarJogada(const std::string acao) {
         return false;
     }
 
-    if (standardized_move[0] == "empate") {
-        id_vencedor = -1;
-        finalizarPartida(Vencedor(id_vencedor));
-        return true;
-    } else if (standardized_move[0] == "abandonar") {
-        id_vencedor = (indiceJogadorDaVez + 1) % 2;
-        finalizarPartida(Vencedor(id_vencedor));
-        return true;
-    }
-
     std::string posicao_inicial = standardized_move[0];
     int initial_x = posicao_inicial[0] - '0';
     int initial_y = posicao_inicial[1] - '0';
@@ -512,11 +495,9 @@ bool Damas::executarJogada(const std::string acao) {
 
     // The player of the turn has no pieces or no moves left
     if (FimdeJogo(indiceJogadorDaVez)) {
-        id_vencedor = (indiceJogadorDaVez + 1) % 2;
-        finalizarPartida(Vencedor(id_vencedor));
+        finalizarPartida(Vencedor((indiceJogadorDaVez + 1) % 2));
     } else if (houve_empate()) {
-        id_vencedor = -1;
-        finalizarPartida(Vencedor(id_vencedor));
+        finalizarPartida(Vencedor(-1));
     }
 
     return true;
@@ -744,11 +725,7 @@ void Damas::exibir(std::ostream& saida) const {
     saida << "\n   a  b  c  d  e  f  g  h\n";
 
     if (estadoPartida == "finalizada") {
-        Player* ganhador = Vencedor(id_vencedor);
-        if (ganhador != nullptr)
-            saida << ganhador->getNome() << " venceu!\n";
-        else
-            saida << "Empate.\n";
+        exibirResultado(saida);
     } else {
         std::string cor = "brancas";
         if (indiceJogadorDaVez == 1)

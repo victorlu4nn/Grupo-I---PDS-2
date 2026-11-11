@@ -40,7 +40,7 @@ void GameManager::getDescricaoRegras() const {
 void GameManager::executarLoopPartida(){executarLoopPartida(std::cin,std::cout);}
 void GameManager::executarLoopPartida(std::istream& entrada,std::ostream& saida) {
     if(!partidaAtual) return;
-    saida<<"Comandos: regras, reiniciar, sair partida, sair programa.\n";
+    saida<<"Comandos: regras, reiniciar, empate, abandonar (ou sair), sair partida, sair programa.\n";
     while(partidaAtual) {
         partidaAtual->exibir(saida);
         if(partidaAtual->getEstado()=="finalizada") return;
@@ -67,7 +67,7 @@ void GameManager::executarLoopPartida(std::istream& entrada,std::ostream& saida)
         try {
             if(linha=="regras") saida<<partidaAtual->get_regras()->getDescricaoRegras()<<'\n';
             else if(linha=="reiniciar") partidaAtual->reiniciarPartida();
-            else if(!partidaAtual->executarJogada(linha))
+            else if(!partidaAtual->lerComando(linha))
                 saida<<"Jogada invalida. Consulte 'regras'; tente novamente.\n";
         } catch(const std::invalid_argument& e) {
             saida<<"Entrada invalida: "<<e.what()<<'\n';
