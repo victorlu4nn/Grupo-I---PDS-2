@@ -1,6 +1,8 @@
 #include "Game.hpp"
 #include "Validacao.hpp"
 #include <algorithm>
+#include <cctype>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -62,12 +64,53 @@ void Game::reiniciarPartida() {
     configurarDisposicaoInicial();
     indiceJogadorDaVez = 0;
     estadoPartida = "em_andamento";
+    vencedorPartida = nullptr;
 }
 void Game::finalizarPartida(Player* vencedor) {
     if (vencedor && std::find(jogadores.begin(), jogadores.end(), vencedor) == jogadores.end())
         throw std::invalid_argument("O vencedor precisa participar desta partida.");
     estadoPartida = "finalizada";
+    vencedorPartida = vencedor;
     // Preserva o contrato original: pontuacao e administrada por Player.
+}
+
+bool Game::lerComando(const std::string acao) {
+    std::string comando = validacao::aparar(acao);
+
+    if (comando == "sair" || comando == "abandonar" || comando == "empate") {
+        if (estadoPartida == "finalizada") {
+            std::cerr << "Erro. A partida ja foi finalizada." << std::endl;
+            return false;
+        }
+
+        if (comando == "empate") {
+            finalizarPartida(nullptr);
+        } else {
+            // The player who leaves loses, so the other player wins
+            validarJogadorDaVez();
+            int outro_jogador = (indiceJogadorDaVez + 1) % static_cast<int>(jogadores.size());
+            finalizarPartida(jogadores[outro_jogador]);
+        }
+        return true;
+    }
+
+    // Not a general command: the specific game reads it
+    return executarJogada(acao);
+}
+
+void Game::exibirResultado(std::ostream& saida) const {
+    std::string mensagem = "EMPATE!";
+
+    if (vencedorPartida != nullptr) {
+        mensagem = "";
+        for (char letra : vencedorPartida->getNome())
+            mensagem += static_cast<char>(std::toupper(static_cast<unsigned char>(letra)));
+        mensagem += " VENCEU!";
+    }
+
+    saida << "\n=============================\n\n";
+    saida << "      " << mensagem << "\n\n";
+    saida << "=============================\n";
 }
 
 RuleBook* Game::get_regras() const { return regras; }
