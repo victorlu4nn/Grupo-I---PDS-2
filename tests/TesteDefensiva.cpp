@@ -23,11 +23,11 @@ public:
     Board& board(){return *tabuleiro;}
     int turno()const{return indiceJogadorDaVez;}
 };
-// Damas usa x = coluna (a..h) e y = linha (1..8); brancas tem id 0 e pretas id 1
+// Damas usa x = coluna (a..h) e y = linha (1..8); brancas tem id 0 (U+26C0, dama U+26C1) e pretas id 1 (U+26C2, dama U+26C3)
 static int coluna(const std::string& casa){return casa[0]-'a';}
 static int linha(const std::string& casa){return casa[1]-'1';}
 static void dama(Board& b,const std::string& casa,int id,bool promovida=false){
-    std::unique_ptr<PecaDamas> p(new PecaDamas(id==0?"\u26C2":"\u26C0",id));
+    std::unique_ptr<PecaDamas> p(new PecaDamas(id==0?"\u26C0":"\u26C2",id));
     if(promovida)p->promocao_dama();
     b.inserirPeca(coluna(casa),linha(casa),std::move(p));
 }
@@ -57,13 +57,13 @@ TEST_CASE("C9 - limites de recursos e coordenadas extremas"){
     CHECK_NOTHROW(b.limpar());CHECK_NOTHROW(b.limpar());
 }
 TEST_CASE("C9 - nomes simbolos status e overflow"){
-    CHECK_THROWS_AS(Player("   ",'A'),std::invalid_argument);
-    CHECK_THROWS_AS(Player("Nome",'\n'),std::invalid_argument);
-    CHECK_THROWS_AS(Player("A\nB",'A'),std::invalid_argument);
+    CHECK_THROWS_AS(Player("   ","A"),std::invalid_argument);
+    CHECK_THROWS_AS(Player("Nome","\n"),std::invalid_argument);
+    CHECK_THROWS_AS(Player("A\nB","A"),std::invalid_argument);
     CHECK_THROWS_AS(PecaBasicaTeste("\t"),std::invalid_argument);
     CHECK_THROWS_AS(PecaBasicaTeste(std::string("a\0b",3)),std::invalid_argument);
     CHECK_THROWS_AS(RuleBook("   "),std::invalid_argument);
-    Player p("A",'A');p.adicionarPontos(INT_MAX);
+    Player p("A","A");p.adicionarPontos(INT_MAX);
     CHECK_THROWS_AS(p.adicionarPontos(1),std::overflow_error);
     CHECK(p.getPontuacao()==INT_MAX);
     PecaBasicaTeste q("X");CHECK_THROWS_AS(q.set_status(static_cast<PieceStatus>(42)),std::invalid_argument);
@@ -130,7 +130,7 @@ TEST_CASE("C9 - Damas promocao e deslocamento de dama"){
     REQUIRE(j.executarJogada("c7 para b8"));
     auto* p=dynamic_cast<PecaDamas*>(em(b,"b8"));REQUIRE(p!=nullptr);
     CHECK(p->get_eh_damas());
-    CHECK(p->ler_simbolo()=="\u26C3");
+    CHECK(p->ler_simbolo()=="\u26C1");
     REQUIRE(j.executarJogada("h6 para g5"));
     REQUIRE(j.executarJogada("b8 para e5"));
     CHECK(em(b,"e5")==p);
