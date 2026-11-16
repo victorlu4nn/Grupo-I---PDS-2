@@ -1,6 +1,6 @@
 #ifndef CONNECT4_HPP // Verifica se este cabeçalho ainda não foi incluído nesta unidade de compilação.
 #define CONNECT4_HPP // Define a marca de inclusão para evitar declarações repetidas do cabeçalho.
-
+//acabouuuu
 #include <string> // Disponibiliza std::string, usada para símbolos, comandos e textos.
 #include <vector> // Disponibiliza std::vector, um contêiner de tamanho variável.
 #include "Piece.hpp" // Inclui a classe base Piece, da qual as fichas do Connect4 herdam.
